@@ -46,13 +46,12 @@ double getInterestRate()
 string getInfo()
 {
     return "Bank Name : " + getBankName()+
-        "\nBranch Name : " + getBankName()+
-        "\nBank Type : "+getBranchName()+
+        "\nBranch Name : " + getBranchName()+
+        "\nBank Type : "+getBankType()+
         "\nEstablished Date : "+getEstablishedDate()+
         "\nLoan Type : "+getLoanType()+
         "\nRequired Document : "+getRequiredDocument()+
         "\nInterest Rate : "+ to_string(getInterestRate());
 }
-
 };
 #endif

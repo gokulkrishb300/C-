@@ -12,6 +12,7 @@
 class Runner 
 {
   InputStudio input;
+
   string bankType(int choice)
   {
     string input = "";
@@ -84,6 +85,7 @@ class Runner
   
     
     cout<<"Established Date: "<<endl;
+    input.getString();
     bank.setEstablishedDate(input.getString());
   }
 
@@ -95,16 +97,93 @@ class Runner
     cout<<"3.LandLoan"<<endl;
     int choice = input.getInt();
     loan.setLoanType(loanType(choice));
+    cout<<requiredDocument(choice)<<endl;
+    loan.setRequiredDocument(input.getString());
+    input.getString();
     cout<<"Interest Rate"<<endl;
     loan.setInterestRate(input.getDouble());
-    cout<<requiredDocument(choice);
-    loan.setRequiredDocument(input.getString());
+    input.getString();
   }
 
+  public:
 
+  void hdfcInfo(HDFC &hdfc)
+  {
+    BankInfo(hdfc);
+    LoanInfo(hdfc);
+  }
 
-  int main(){
+  void iciciInfo(ICICI &icici)
+  {
+    BankInfo(icici);
+    LoanInfo(icici);
+  }
 
-  }  
+  void indianBankInfo(IndianBank &indianBank)
+  {
+    BankInfo(indianBank);
+    LoanInfo(indianBank);
+  }
+
+  void sbiInfo(SBI &sbi)
+  {
+    BankInfo(sbi);
+    LoanInfo(sbi);
+  }
+
 };
+
+int main()
+{
+  Runner run;
+
+  HDFC hdfc;
+  ICICI icici;
+  IndianBank indianBank;
+  SBI sbi;
+
+  run.hdfcInfo(hdfc);
+  run.iciciInfo(icici);
+  run.indianBankInfo(indianBank);
+  run.sbiInfo(sbi);
+
+  Broker broker;
+
+  HDFC *hdfcVal = &hdfc;
+  ICICI *iciciVal = &icici;
+  IndianBank *indianBankVal = &indianBank;
+  SBI *sbiVal = &sbi;
+
+  double interestRate = broker.compareIR(hdfcVal,iciciVal,indianBankVal,sbiVal);
+
+  string bankName = broker.bankName(interestRate,hdfc,icici,indianBank,sbi);
+
+  cout<<"Lowest Bank InterestRate is : "+to_string(interestRate)+" Bank Name : "+bankName<<endl;
+
+  interestRate = broker.compareIR(hdfcVal,sbiVal);
+  bankName = broker.bankName(interestRate,hdfc,icici,indianBank,sbi);
+  cout<<"Two Bank Compared Low InterestRate is : "+to_string(interestRate)+" Bank Name : "+bankName<<endl;
+
+  interestRate = broker.compareIR(sbiVal,iciciVal,indianBankVal);
+  bankName = broker.bankName(interestRate,hdfc,icici,indianBank,sbi);
+  cout<<"Three Bank Compared Low InterestRate is : "+to_string(interestRate)+" Bank Name : "+bankName<<endl;
+
+  Loan *loanAr[] = {&hdfc, &icici, &indianBank, &sbi};
+
+  interestRate = broker.compareIR(loanAr,4);
+
+  bankName = broker.bankName(interestRate,hdfc,icici,indianBank,sbi);
+
+  cout<<"N Bank Compared Low InterestRate is : "+to_string(interestRate)+" Bank Name : "+bankName<<endl;
+
+  cout<<broker.bankInfo(hdfc)<<endl;
+  cout<<broker.bankInfo(icici)<<endl;
+  cout<<broker.bankInfo(indianBank)<<endl;
+  cout<<broker.bankInfo(sbi)<<endl;
+
+  Bank *loanArr[] = {&hdfc, &icici , &indianBank,&sbi};
+  broker.bankDetails(loanArr,4);
+  return 0;
+
+}
 #endif

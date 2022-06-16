@@ -3,7 +3,6 @@
 #include "Bank.h"
 #include "Loan.h"
 
-using std::to_string;
 class HDFC : public Bank, public Loan
 {
 
@@ -45,14 +44,13 @@ double getInterestRate()
 
 string getInfo()
 {
-    return "Bank Name : " + getBankName()+
-        "\nBranch Name : " + getBankName()+
-        "\nBank Type : "+getBranchName()+
+       return "Bank Name : " + getBankName()+
+        "\nBranch Name : " + getBranchName()+
+        "\nBank Type : "+getBankType()+
         "\nEstablished Date : "+getEstablishedDate()+
         "\nLoan Type : "+getLoanType()+
         "\nRequired Document : "+getRequiredDocument()+
-        "\nInterest Rate : "+ to_string(getInterestRate());
+        "\nInterest Rate : " + std::to_string(getInterestRate());
 }
-
 };
 #endif

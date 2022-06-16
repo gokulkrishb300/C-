@@ -35,9 +35,9 @@ public:
         this->interestRate = interestRate;
     }
 
-    virtual string getLoanType(){}
-    virtual string getRequiredDocument(){}
-    virtual double getInterestRate(){}
+    virtual string getLoanType(){return "";}
+    virtual string getRequiredDocument(){return "";}
+    virtual double getInterestRate(){return 0.0;}
 };
 
 #endif

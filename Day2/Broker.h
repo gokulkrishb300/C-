@@ -50,7 +50,7 @@ public :
         return loan ->getInterestRate();
     }
 
-    double compareLoanRate(Loan *loan1 , Loan *loan2)
+    double compareIR(Loan *loan1 , Loan *loan2)
     {
         if(loan1 ->getInterestRate() < loan2 ->getInterestRate())
         {
@@ -59,7 +59,7 @@ public :
         return loan2->getInterestRate();
     }
 
-    double compareLoanRate(Loan *loan1 , Loan *loan2 , Loan *loan3)
+    double compareIR(Loan *loan1 , Loan *loan2 , Loan *loan3)
     {
         Loan *loan = loan1;
 
@@ -76,7 +76,7 @@ public :
         return loan ->getInterestRate();
     }
 
-    double compareLoanRate(Loan *loanArr[] , int size)
+    double compareIR(Loan *loanArr[] , int size)
     {
         Loan *loan = loanArr[0];
 
@@ -92,11 +92,14 @@ public :
 
     string bankInfo(Bank &bank)
     {
+        cout<<"-------Details of single bank-------"<<endl;
+    
         return bank.getInfo();
     }
 
     void bankDetails(Bank *bankArr[], int size)
     {
+        cout<<"-------Details of Multiple bank------"<<endl;
         for(int i = 0 ; i < size ; i++)
         {
             cout<<bankArr[i]->getInfo()<<endl;

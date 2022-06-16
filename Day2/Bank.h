@@ -48,15 +48,15 @@ public:
 
 
     
-    virtual string getBankName(){}
+    virtual string getBankName(){return "";}
 
-    virtual string getBranchName(){}
+    virtual string getBranchName(){return "";}
 
-    virtual string getBankType(){}
+    virtual string getBankType(){return "";}
  
-    virtual string getEstablishedDate(){}
+    virtual string getEstablishedDate(){return "";}
 
-    virtual string getInfo(){}
+    virtual string getInfo(){return "";}
     
 };
 #endif
