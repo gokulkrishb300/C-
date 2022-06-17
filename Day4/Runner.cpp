@@ -1,4 +1,5 @@
 #include "Rectangle.h"
+#include "InputStudio.h"
 
 int main()
 {
@@ -6,17 +7,17 @@ int main()
     int top;
     int width;
     int height;
-
+    InputStudio input;
     Rectangle rectangle0;
     cout<<"1.Default Constructor"<<endl;
     cout << rectangle0.printRectangle()<<endl;
-    cin;
+    
     cout<<"2.Parameterized Constructor with Left, Top as '0'"<<endl;
     
     left = 0;
     top = 0;
-    cout<<"Width : ";    cin>>width;
-    cout<<"Heigth : ";   cin>>height;
+    width = input.getInt("width : ");
+    height = input.getInt("height : ");
 
     
     Rectangle rectangle1(left,top,width,height);
@@ -25,10 +26,10 @@ int main()
 
     cout<<"3.Parameterized Constructor with general values"<<endl;
 
-    cout<<"Left : ";    cin>>left;
-    cout<<"Top : ";     cin>>top;
-    cout<<"Width : ";    cin>>width;
-    cout<<"Heigth : ";   cin>>height;
+    left = input.getInt("left : ");
+    top = input.getInt("top : ");
+    width = input.getInt("width : ");
+    height = input.getInt("height : ");
 
     
     Rectangle rectangle2(left,top,width,height);
@@ -42,10 +43,10 @@ int main()
     float widthf;
     float heightf;
 
-    cout<<"Left : ";    cin>>leftf;
-    cout<<"Top : ";     cin>>topf;
-    cout<<"Width : ";    cin>>widthf;
-    cout<<"Heigth : ";   cin>>heightf;
+    left = input.getFloat("left : ");
+    top = input.getFloat("top : ");
+    width = input.getFloat("width : ");
+    height = input.getFloat("height : ");
 
     
     Rectangle rectangle3(leftf,topf,widthf,heightf);
