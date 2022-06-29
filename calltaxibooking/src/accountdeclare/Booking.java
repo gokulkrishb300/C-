@@ -1,18 +1,18 @@
 package accountdeclare;
 
 public class Booking {
-	private String bookingId;
+	private int bookingId;
 	private int customerId;
 	private Points startingPoint;
 	private Points destinationPoint;
-	private String time;
+	private int time;
 	private short charges;
 	private boolean bookingType;
 	private String taxi;
-	public String getBookingId() {
+	public int getBookingId() {
 		return bookingId;
 	}
-	public void setBookingId(String bookingId) {
+	public void setBookingId(int bookingId) {
 		this.bookingId = bookingId;
 	}
 	public int getCustomerId() {
@@ -33,10 +33,10 @@ public class Booking {
 	public void setDestinationPoint(Points destinationPoint) {
 		this.destinationPoint = destinationPoint;
 	}
-	public String getTime() {
+	public int getTime() {
 		return time;
 	}
-	public void setTime(String time) {
+	public void setTime(int time) {
 		this.time = time;
 	}
 	public short getCharges() {
@@ -62,9 +62,16 @@ public class Booking {
 	public void setTaxi(String taxi) {
 		this.taxi = taxi;
 	}
+//	@Override
+//	public String toString() {
+//		return "BookingId : " + bookingId + "\nAlloted Taxi : " + taxi;
+//	}
 	@Override
 	public String toString() {
-		return "BookingId : " + bookingId + "\nAlloted Taxi : " + taxi;
+		return "BookingId=" + bookingId + ", CustomerId=" + customerId + ", StartingPoint=" + startingPoint
+				+ ", DestinationPoint=" + destinationPoint + ", Time=" + time + ", Charges=" + charges
+				+ ", BookingType=" + getBookingType() + ", Alloted-Taxi=" + taxi ;
 	}
+	
 	
 }

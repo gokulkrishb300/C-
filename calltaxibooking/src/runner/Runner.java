@@ -21,7 +21,7 @@ public class Runner {
 		System.out.println();
 	}
 	
-	private static void menu()
+	private static void menu()	
 	{
 		System.out.println();
 		System.out.println("1)Put Customer Details");
@@ -34,7 +34,7 @@ public class Runner {
 		System.out.println();
 	}
 	
-	private void startingPoint(Booking booking)
+	private void startingPoint(Booking booking)				//Starting Point
 	{
 		boolean flag = true;
 		
@@ -74,7 +74,7 @@ public class Runner {
 		}
 	}
 	
-	private void destinationPoint(Booking booking)
+	private void destinationPoint(Booking booking)			//DestinationPoint
 	{
 		boolean flag = true;
 		
@@ -123,7 +123,7 @@ public class Runner {
 		}
 	}
 	
-	private void putCustomer()
+	private void putCustomer()					//PutCustomer
 	{
 		Customer customer = new Customer();
 		String name = input.getString("Customer Name : ");
@@ -169,7 +169,7 @@ public class Runner {
 		}
 	}
 	
-	private void getCustomer()
+	private void getCustomer()						//GetCustomer	
 	{
 		String customerId = input.getString("Customer Id : ");
 		try {
@@ -180,7 +180,7 @@ public class Runner {
 		}
 	}
 	
-	private void nFleet()
+	private void nFleet()								//Initialize Fleet
 	{
 		int noOfTaxis = input.getInt("Number of Taxis : ");
 		try {
@@ -191,7 +191,7 @@ public class Runner {
 		}
 	}
 	
-	private void readFleet()
+	private void readFleet()							//Read Fleet
 	{
 		try
 		{
@@ -204,7 +204,7 @@ public class Runner {
 	}
 	
 	
-	private void booking()
+	private void booking()									//Booking
 	{
 		Booking booking = new Booking();
 		
@@ -212,7 +212,10 @@ public class Runner {
 		booking.setCustomerId(customerId);
 		startingPoint(booking);
 		destinationPoint(booking);
+		int time = input.getInt("Time : ");
+		booking.setTime(time);
 		int distance = api.calculate(booking);
+		
 		if(distance>=45)
 		{
 			boolean flag = true;
@@ -220,7 +223,7 @@ public class Runner {
 			{
 				boolean noShare = true;
 				boolean share = false;
-				int value = input.getInt("1)No Share\\n2)Share");
+				int value = input.getInt("1)No Share\n2)Share\n");
 				switch(value)
 				{
 				case 0:
@@ -257,7 +260,7 @@ public class Runner {
 		}
 	}
 	
-	private void getBookedId()
+	private void getBookedId()								//GetBookedID
 	{
 		String bookedId = input.getString("Booked Id : ");
 		
@@ -268,7 +271,7 @@ public class Runner {
 			System.out.println(e.getMessage());
 		}
 	}
-	private void searchTaxis() throws ManualException
+	private void searchTaxis() throws ManualException		//searchTaxi
 	{
 		boolean flag = true;
 		while(flag)
@@ -281,19 +284,19 @@ public class Runner {
 				System.out.println("Search Cancelled");
 				break;
 			case 1:
-				System.out.println(api.searchTaxis("A"));
+				System.out.println("Taxi-"+api.searchTaxis("A"));
 				break;
 			case 2:
-				System.out.println(api.searchTaxis("B"));
+				System.out.println("Taxi-"+api.searchTaxis("B"));
 				break;
 			case 3:
-				System.out.println(api.searchTaxis("C"));
+				System.out.println("Taxi-"+api.searchTaxis("C"));
 				break;
 			case 4:
-				System.out.println(api.searchTaxis("D"));
+				System.out.println("Taxi-"+api.searchTaxis("D"));
 				break;
 			case 5:
-				System.out.println(api.searchTaxis("E"));
+				System.out.println("Taxi-"+api.searchTaxis("E"));
 				break;
 			default:
 				System.out.println("Enter Wisely");
@@ -302,7 +305,7 @@ public class Runner {
 		}
 	}
 	
-	public static void main(String[] args)
+	public static void main(String[] args)					//MAIN
 	{
 		InputCenter input = new InputCenter();
 		Runner run = new Runner();
@@ -334,7 +337,7 @@ public class Runner {
 			case 5:
 				try
 				{
-					run.searchTaxis();
+				run.searchTaxis();
 				} catch (ManualException e) 
 				{
 					System.out.println(e.getMessage());
