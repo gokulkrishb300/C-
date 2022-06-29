@@ -1,7 +1,7 @@
 package accountdeclare;
 
 public class Booking {
-	private int bookingId;
+	private String bookingId;
 	private int customerId;
 	private Points startingPoint;
 	private Points destinationPoint;
@@ -9,10 +9,10 @@ public class Booking {
 	private short charges;
 	private boolean bookingType;
 	private String taxi;
-	public int getBookingId() {
+	public String getBookingId() {
 		return bookingId;
 	}
-	public void setBookingId(int bookingId) {
+	public void setBookingId(String bookingId) {
 		this.bookingId = bookingId;
 	}
 	public int getCustomerId() {

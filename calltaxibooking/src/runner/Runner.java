@@ -26,8 +26,11 @@ public class Runner {
 		System.out.println();
 		System.out.println("1)Put Customer Details");
 		System.out.println("2)Get Customer Details");
-		System.out.println("3)Car Fleet");
-		System.out.println("4)Current Location Available Taxis");
+		System.out.println("3)Intialize Car Fleet");
+		System.out.println("4)Read Car Fleet");
+		System.out.println("5)SearchTaxis");
+		System.out.println("6)Taxi Booking");
+		System.out.println("7)Get BookedId");
 		System.out.println();
 	}
 	
@@ -37,7 +40,7 @@ public class Runner {
 		
 		while(flag)
 		{
-			System.out.println("1)A 2)B 3)C 4)D 5)E");
+			System.out.println("Starting Point\n1)A 2)B 3)C 4)D 5)E");
 			int point = input.getInt("");
 			switch(point)
 			{
@@ -77,7 +80,7 @@ public class Runner {
 		
 		while(flag)
 		{
-			System.out.println("1)A 2)B 3)C 4)D 5)E");
+			System.out.println("Destination Point\n1)A 2)B 3)C 4)D 5)E");
 			int point = input.getInt("");
 			switch(point)
 			{
@@ -188,12 +191,25 @@ public class Runner {
 		}
 	}
 	
+	private void readFleet()
+	{
+		try
+		{
+			System.out.println(api.readFleet());
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+	
 	
 	private void booking()
 	{
 		Booking booking = new Booking();
 		
 		int customerId = input.getInt("CustomerId : ");
+		booking.setCustomerId(customerId);
 		startingPoint(booking);
 		destinationPoint(booking);
 		int distance = api.calculate(booking);
@@ -202,10 +218,9 @@ public class Runner {
 			boolean flag = true;
 			while(flag)
 			{
-				System.out.println("1)No Share\n2)Share");
 				boolean noShare = true;
 				boolean share = false;
-				int value = input.getInt("");
+				int value = input.getInt("1)No Share\\n2)Share");
 				switch(value)
 				{
 				case 0:
@@ -232,16 +247,33 @@ public class Runner {
 			booking.setBookingType(true);
 			booking.setCharges((short) (distance*10));
 		}
+		try
+		{
+			System.out.println(api.ticketBooking(booking));
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	private void getBookedId()
+	{
+		String bookedId = input.getString("Booked Id : ");
 		
-	    
+		try {
+			System.out.println(api.getBooking(bookedId));
+		} catch (ManualException e) 
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 	private void searchTaxis() throws ManualException
 	{
 		boolean flag = true;
 		while(flag)
 		{
-			System.out.println("1)A 2)B 3)C 4)D 5)E");
-			int choice = input.getInt("");
+			int choice = input.getInt("1)A 2)B 3)C 4)D 5)E\n");
 			switch(choice)
 			{
 			case 0:
@@ -297,12 +329,22 @@ public class Runner {
 				run.nFleet();
 				break;
 			case 4:
-				try {
+				run.readFleet();
+				break;
+			case 5:
+				try
+				{
 					run.searchTaxis();
 				} catch (ManualException e) 
 				{
 					System.out.println(e.getMessage());
 				}
+				break;
+			case 6:
+				run.booking();
+				break;
+			case 7:
+				run.getBookedId();
 				break;
 			default:
 				System.out.println("Invalid Process");
