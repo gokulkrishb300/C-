@@ -396,27 +396,25 @@ public class AtmAPI {
 			return "Transaction shouldn't exceed ₹10000";
 		}
 		int balance = 0;
+		int twoThousand , fiveHundred, hundred ;
 		
+		twoThousand=fiveHundred=hundred=0;
+		if(amount>3000)
+		{
+			twoThousand = amount/2000;
+		}
+		if(amount>1000)
+		{
+			fiveHundred = (amount-(twoThousand*2000))/500;
+		}
+			hundred = (amount-((twoThousand*2000)+(fiveHundred*500)))/100;
 		if(account!=null)
 		{
 			 balance = account.getBalance()-amount;
 			
 			if(balance >0)
 			{
-				switch(amount)
-				{
-				case 3000:
-					removeATMBalance(0,3,15);
-					break;
-				case 2000:
-					removeATMBalance(0,1,15);
-					break;
-				case 1500:
-					removeATMBalance(0,1,10);
-				case 1000:
-					removeATMBalance(0,0,10);
-					break;
-				}
+				removeATMBalance(twoThousand,fiveHundred,hundred);
 			}
 			else
 			{
