@@ -4,6 +4,7 @@ import accountdeclare.Booking;
 import accountdeclare.Customer;
 import accountdeclare.Gender;
 import accountdeclare.Points;
+import accountdeclare.TravelHistory;
 import api.CallTaxiAPI;
 import inputcenter.InputCenter;
 import manualexception.ManualException;
@@ -30,11 +31,12 @@ public class Runner {
 		System.out.println("4)Read Car Fleet");
 		System.out.println("5)SearchTaxis");
 		System.out.println("6)Taxi Booking");
-		System.out.println("7)Get BookedId");
+		System.out.println("7)Get Taxi TravelHistory");
+		System.out.println("8)Get BookedId Details");
 		System.out.println();
 	}
 	
-	private void startingPoint(Booking booking)				//Starting Point
+	private void startingPoint(Booking booking,TravelHistory travelHistory)				//Starting Point
 	{
 		boolean flag = true;
 		
@@ -49,22 +51,32 @@ public class Runner {
 				System.out.println("Point selection failed");
 			case 1:
 				booking.setStartingPoint(Points.A);
+			    travelHistory.setStartingPoint(Points.A);
+
 				flag = false;
 				break;
 			case 2:
 				booking.setStartingPoint(Points.B);
+				travelHistory.setStartingPoint(Points.B);
+
 				flag = false;
 				break;
 			case 3:
 				booking.setStartingPoint(Points.C);
+				travelHistory.setStartingPoint(Points.C);
+
 				flag = false;
 				break;
 			case 4:
 				booking.setStartingPoint(Points.D);
+				travelHistory.setStartingPoint(Points.D);
+
 				flag = false;
 				break;
 			case 5:
 				booking.setStartingPoint(Points.E);
+				travelHistory.setStartingPoint(Points.E);
+
 				flag = false;
 				break;
 			default:
@@ -74,7 +86,7 @@ public class Runner {
 		}
 	}
 	
-	private void destinationPoint(Booking booking)			//DestinationPoint
+	private void destinationPoint(Booking booking,TravelHistory travelHistory)			//DestinationPoint
 	{
 		boolean flag = true;
 		
@@ -89,22 +101,31 @@ public class Runner {
 				System.out.println("Point selection failed");
 			case 1:
 				booking.setDestinationPoint(Points.A);
+				travelHistory.setEndPoint(Points.A);
 				flag = false;
 				break;
 			case 2:
 				booking.setDestinationPoint(Points.B);
+				travelHistory.setEndPoint(Points.B);
+
 				flag = false;
 				break;
 			case 3:
 				booking.setDestinationPoint(Points.C);
+				travelHistory.setEndPoint(Points.C);
+
 				flag = false;
 				break;
 			case 4:
 				booking.setDestinationPoint(Points.D);
+				travelHistory.setEndPoint(Points.D);
+
 				flag = false;
 				break;
 			case 5:
 				booking.setDestinationPoint(Points.E);
+				travelHistory.setEndPoint(Points.E);
+
 				flag = false;
 				break;
 			default:
@@ -207,13 +228,16 @@ public class Runner {
 	private void booking()									//Booking
 	{
 		Booking booking = new Booking();
+		TravelHistory travelHistory = new TravelHistory();
 		
 		int customerId = input.getInt("CustomerId : ");
 		booking.setCustomerId(customerId);
-		startingPoint(booking);
-		destinationPoint(booking);
-		int time = input.getInt("Time : ");
+		travelHistory.setCustomerId(customerId);
+		startingPoint(booking,travelHistory);
+		destinationPoint(booking,travelHistory);
+		String time = input.getString("Time : ");
 		booking.setTime(time);
+		travelHistory.setStartTime(time);
 		int distance = api.calculate(booking);
 		
 		if(distance>=45)
@@ -231,15 +255,25 @@ public class Runner {
 					System.out.println("Share selection failed");
 					break;
 				case 1:
+				{
 					booking.setBookingType(noShare);
-					booking.setCharges((short) (distance*10));
+					travelHistory.setBookingType(noShare);
+					short temp = (short)(distance*10);
+					booking.setCharges(temp);
+					travelHistory.setCharges(temp);
 					flag = false;
 					break;
+				}
 				case 2:
+				{
 					booking.setBookingType(share);
-					booking.setCharges((short)(distance*10*0.4));
+					travelHistory.setBookingType(share);
+					short temp = (short)(distance*10*0.4);
+					booking.setCharges(temp);
+					travelHistory.setCharges(temp);
 					flag = false;
 					break;
+				}
 				default:
 					System.out.println("Select wisely!");
 					break;
@@ -249,10 +283,12 @@ public class Runner {
 		{
 			booking.setBookingType(true);
 			booking.setCharges((short) (distance*10));
+			travelHistory.setCharges((short)(distance*10));
+			travelHistory.setBookingType(true);
 		}
 		try
 		{
-			System.out.println(api.ticketBooking(booking));
+			System.out.println(api.ticketBooking(booking,travelHistory));
 		}
 		catch(ManualException e)
 		{
@@ -260,12 +296,26 @@ public class Runner {
 		}
 	}
 	
-	private void getBookedId()								//GetBookedID
+	private void getBookedId()
 	{
-		String bookedId = input.getString("Booked Id : ");
+		String bookedId = input.getString("Booked-Id : ");
+		
+		try
+		{
+			System.out.println(api.getBookedDetails(bookedId));
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	private void getTravelHistory()								//GetTravelHistory
+	{
+		String taxiName = input.getString("Taxi-Name : ");
 		
 		try {
-			System.out.println(api.getBooking(bookedId));
+			System.out.println(api.getTravelHistory(taxiName));
 		} catch (ManualException e) 
 		{
 			System.out.println(e.getMessage());
@@ -347,6 +397,9 @@ public class Runner {
 				run.booking();
 				break;
 			case 7:
+				run.getTravelHistory();
+				break;
+			case 8:
 				run.getBookedId();
 				break;
 			default:

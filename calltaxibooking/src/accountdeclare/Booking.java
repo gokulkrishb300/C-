@@ -5,7 +5,7 @@ public class Booking {
 	private int customerId;
 	private Points startingPoint;
 	private Points destinationPoint;
-	private int time;
+	private String time;
 	private short charges;
 	private boolean bookingType;
 	private String taxi;
@@ -33,10 +33,10 @@ public class Booking {
 	public void setDestinationPoint(Points destinationPoint) {
 		this.destinationPoint = destinationPoint;
 	}
-	public int getTime() {
+	public String getTime() {
 		return time;
 	}
-	public void setTime(int time) {
+	public void setTime(String time) {
 		this.time = time;
 	}
 	public short getCharges() {

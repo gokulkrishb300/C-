@@ -1,18 +1,18 @@
 package accountdeclare;
 
 public class TravelHistory {
-	private int bookingId;
+	private String bookingId;
 	private int customerId;
 	private Points startingPoint;
 	private Points endPoint;
-	private long startTime;
-	private long endTime;
+	private String startTime;
+	private String endTime;
 	private boolean bookingType;
 	private short charges;
-	public int getBookingId() {
+	public String getBookingId() {
 		return bookingId;
 	}
-	public void setBookingId(int bookingId) {
+	public void setBookingId(String bookingId) {
 		this.bookingId = bookingId;
 	}
 	public int getCustomerId() {
@@ -33,16 +33,16 @@ public class TravelHistory {
 	public void setEndPoint(Points endPoint) {
 		this.endPoint = endPoint;
 	}
-	public long getStartTime() {
+	public String getStartTime() {
 		return startTime;
 	}
-	public void setStartTime(long startTime) {
+	public void setStartTime(String startTime) {
 		this.startTime = startTime;
 	}
-	public long getEndTime() {
+	public String getEndTime() {
 		return endTime;
 	}
-	public void setEndTime(long endTime) {
+	public void setEndTime(String endTime) {
 		this.endTime = endTime;
 	}
 	public byte getBookingType() {
@@ -65,7 +65,7 @@ public class TravelHistory {
 	public String toString() {
 		return "BookingId=" + bookingId + ", CustomerId=" + customerId + ", StartingPoint="
 				+ startingPoint + ", EndPoint=" + endPoint + ", StartTime=" + startTime + ", EndTime=" + endTime
-				+ ", BookingType=" + bookingType + ", Charges=" + charges;
+				+ ", BookingType=" + getBookingType() + ", Charges=" + charges;
 	}
 	
 	
