@@ -236,6 +236,9 @@ public class Runner {
 		startingPoint(booking,travelHistory);
 		destinationPoint(booking,travelHistory);
 		String time = input.getString("Time : ");
+		try {
+			api.validTime(time);
+		
 		booking.setTime(time);
 		travelHistory.setStartTime(time);
 		int distance = api.calculate(booking);
@@ -286,8 +289,7 @@ public class Runner {
 			travelHistory.setCharges((short)(distance*10));
 			travelHistory.setBookingType(true);
 		}
-		try
-		{
+
 			System.out.println(api.ticketBooking(booking,travelHistory));
 		}
 		catch(ManualException e)

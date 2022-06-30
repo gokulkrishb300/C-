@@ -1,12 +1,14 @@
 package api;
 
-import java.text.SimpleDateFormat;
+
 import java.util.ArrayList;
-import java.util.Date;
+
 import java.util.Formatter;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.simple.JSONObject;
 
@@ -42,9 +44,11 @@ public class CallTaxiAPI {
 		return customerId;
 	}
 	
+	String taxiHistoryId = null;
 	@SuppressWarnings("unchecked")
 	private int bookingId(String taxiNo,short charges,String destination) throws ManualException 		//BookingId Generator
 	{
+		
 		JSONObject jsonObj;
 		try {
 			jsonObj = readTaxi(taxiNo);
@@ -52,15 +56,17 @@ public class CallTaxiAPI {
 		{
 			throw new ManualException("Getting bookingId from Taxi-"+taxiNo+" becomes failed");
 		}
-		String bookingID = (String) jsonObj.get("No.of_Bookings");
+		String noOfBooking = (String) jsonObj.get("No.of_Bookings");
 		
 		String earnings = (String) jsonObj.get("Earnings");
 		
 		int newEarnings = Integer.valueOf(earnings)+charges;
 		
-		int bookId = Integer.valueOf(bookingID);
+		int bookId = Integer.valueOf(noOfBooking);
 		
 		jsonObj.put("No.of_Bookings", String.valueOf(++bookId));
+		
+		taxiHistoryId = bookId+"";
 		
 		jsonObj.put("Earnings", String.valueOf(newEarnings));
 		
@@ -68,7 +74,11 @@ public class CallTaxiAPI {
 		
 		json.jsonWrite(jsonObj, "Taxi-"+taxiNo+".json");
 		
-		return bookingId++;
+		keyMap.put("bookingId", String.valueOf(++bookingId));
+		
+		json.jsonWrite(keyMap, "KeyDetails.json");
+		
+		return bookingId;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -139,11 +149,15 @@ public class CallTaxiAPI {
 		{
 			String no_Of_Taxis = (String) keyMap.get("No.Of_Taxis");
 			
-			if(no_Of_Taxis==null) {
-				throw new ManualException("");
+			String bookingID = (String) keyMap.get("bookingId");
+			
+			
+			if(no_Of_Taxis==null || bookingID == null) {
+				throw new ManualException("key values unavailable");
 			}
 			
-		
+			bookingId = Integer.valueOf(bookingID);
+			
 			noOfTaxis = Integer.valueOf(no_Of_Taxis);
 			
 			String customerID = (String) keyMap.get("customerId");
@@ -253,7 +267,55 @@ public class CallTaxiAPI {
 		return value;
 	}
 	
+	public void validTime(String startTime) throws ManualException												//validatingStartTime
+	{
+		String regex = "(1[012]|[1-9])."+"[0-5][0-9](\\s)"+"?(?i)(am|pm)";
+		
+		Pattern compilePattern = Pattern.compile(regex);
+		
+		Matcher matcher = compilePattern.matcher(startTime);
+		
+		if(!matcher.matches())
+		{
+			throw new ManualException("Invalid Time\nBooking Cancelled");
+		}
+	}
+	private String endTime(String startTime , String startPoint, String endPoint) throws ManualException			//predicting End Time
+	{
+		List<String> list = new ArrayList<>();
+		
+		char stPoint = startPoint.charAt(0);
 	
+		char ePoint = endPoint.charAt(0);
+		
+		int value = Math.abs(ePoint-stPoint);
+		
+		int endTime = Math.abs(ePoint-stPoint)*15;
+		
+		String[] hr = startTime.split("\\.");
+		
+		
+		
+		String meridiem = null;
+		
+		if(startTime.contains("AM"))
+		{
+			meridiem = "AM";
+		}
+		else
+		{
+			meridiem = "PM";
+		}
+		
+		for(int i = 1 ; i <= value ; i++)
+		{
+			list.add(hr[0]+"."+i*15+""+meridiem);
+		}
+		
+		System.out.println(list);
+		
+		return hr[0]+"."+endTime+""+meridiem;
+	}
 	
 	@SuppressWarnings("unchecked")
 	public String ticketBooking(Booking booking,TravelHistory travelHistory) throws ManualException				//Ticket Booking
@@ -292,13 +354,17 @@ public class CallTaxiAPI {
 		
 		booking.setBookingId(bookingId);
 		
+		String endTime = endTime(booking.getTime()+"",booking.getStartingPoint()+"",booking.getDestinationPoint()+"");
+		
 		String data = gson.toJson(booking);
 		
-		String bookingID = "T"+taxiNo+"_"+bookingId;
+		String bookingID = "T"+taxiNo+"_"+taxiHistoryId;
 		
 		travelHistory.setBookingId(bookingID);
 		
 		bookingDetails.put(bookingId+"", data);
+		
+		travelHistory.setEndTime(endTime);
 		
 		String travelData = gson.toJson(travelHistory);
 		
@@ -311,7 +377,7 @@ public class CallTaxiAPI {
 			travelProgress.put(taxiName, temp);
 		}
 		
-		temp.put(bookingID, travelData);
+		temp.put(taxiHistoryId, travelData);
 
 		json.jsonWrite(bookingDetails, "Bookings.json");
 		
@@ -336,7 +402,7 @@ public class CallTaxiAPI {
 	public Formatter getTravelHistory(String taxiName) throws ManualException							//Get TravelHistory
 	{
 		
-		JSONObject jsonObj = (JSONObject) travelProgress.get(taxiName);
+		JSONObject jsonObj = (JSONObject) travelProgress.get("Taxi-"+taxiName);
 		
 		Formatter fmt = new Formatter();
 		
