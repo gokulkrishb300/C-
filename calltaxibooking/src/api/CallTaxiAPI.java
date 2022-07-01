@@ -25,7 +25,7 @@ public class CallTaxiAPI {
 	
 	private int customerId = 0;
 	
-	private int bookingId = 1;
+	private int bookingId = 0;
 	
 	private int noOfTaxis = 0;
 	
@@ -280,7 +280,7 @@ public class CallTaxiAPI {
 			throw new ManualException("Invalid Time\nBooking Cancelled");
 		}
 	}
-	private String endTime(String startTime , String startPoint, String endPoint) throws ManualException			//predicting End Time
+	private String endTime(String taxiName,String startTime , String startPoint, String endPoint,String bookingType) throws ManualException			//predicting End Time
 	{
 		List<String> list = new ArrayList<>();
 		
@@ -294,8 +294,6 @@ public class CallTaxiAPI {
 		
 		String[] hr = startTime.split("\\.");
 		
-		
-		
 		String meridiem = null;
 		
 		if(startTime.contains("AM"))
@@ -306,14 +304,15 @@ public class CallTaxiAPI {
 		{
 			meridiem = "PM";
 		}
-		
+		if(bookingType.equals("2"))
+		{
 		for(int i = 1 ; i <= value ; i++)
 		{
 			list.add(hr[0]+"."+i*15+""+meridiem);
 		}
 		
 		System.out.println(list);
-		
+		}
 		return hr[0]+"."+endTime+""+meridiem;
 	}
 	
@@ -354,7 +353,7 @@ public class CallTaxiAPI {
 		
 		booking.setBookingId(bookingId);
 		
-		String endTime = endTime(booking.getTime()+"",booking.getStartingPoint()+"",booking.getDestinationPoint()+"");
+		String endTime = endTime(taxiName, booking.getTime()+"",booking.getStartingPoint()+"",booking.getDestinationPoint()+"",booking.getBookingType()+"");
 		
 		String data = gson.toJson(booking);
 		
@@ -452,7 +451,7 @@ public class CallTaxiAPI {
 		int size = list.size();
 		if(size==0)
 		{
-			return "Oops!No Taxi's Available";
+			return getNearbyTaxi(point);
 		}
 		if(size == 1)
 		{
@@ -481,12 +480,36 @@ public class CallTaxiAPI {
 			}
 		}
 		int size = set.size();
+	
+		
 		String taxi[] = set.toArray(new String[size]);
-//		if(size==0)
-//		{
-//			return "Oops!No Taxi's Available";
-//		}
-		//System.out.println("Search Taxi By Earnings : "+taxi[taxi.length-1]);
+
+		return taxi[taxi.length-1];
+	}
+	
+	public String getNearbyTaxi(String point) throws ManualException
+	{
+		Set<String> set = new TreeSet<>();
+
+		char currentPlace = point.charAt(0);
+		
+		int lowDistance = Integer.MAX_VALUE;
+		
+		for(int i = 1 ; i <= noOfTaxis ; i++)
+		{
+			JSONObject json = readTaxi(i+"");
+			String location = json.get("Current-Location")+"";
+			char vehiclePlace = location.charAt(0);
+			int minimumDistance = Math.abs(currentPlace-vehiclePlace);
+			if(minimumDistance < lowDistance)
+			{
+				lowDistance = minimumDistance;
+				set.add(json.get("Taxi-Name")+"");
+			}
+		}
+		int size = set.size();
+		String taxi[] = set.toArray(new String[size]);
+		
 		return taxi[taxi.length-1];
 	}
 }

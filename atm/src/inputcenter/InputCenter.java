@@ -7,6 +7,26 @@ import java.util.*;
 public class InputCenter {
 	Scanner scan = new Scanner(System.in);
 	
+	public int getShort(String input) 
+	{
+		System.out.print(input);
+		
+		String value = scan.nextLine();
+		
+		try
+		{
+			if(!(value == null) && !value.isEmpty())
+			{
+				return Short.valueOf(value);
+			}
+		}
+		catch(NumberFormatException e)
+		{
+		    System.out.println("Integer input only");
+		}
+		return getShort(input);
+	}
+	
 	public int getInt(String input) 
 	{
 		System.out.print(input);

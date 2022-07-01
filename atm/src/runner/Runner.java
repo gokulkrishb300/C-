@@ -38,6 +38,15 @@ public class Runner extends Thread{
 		System.out.println("4) Transfer Money");
 		System.out.println("5) Check ATM Balance");
 		System.out.println("6) Mini Statement");
+		System.out.println("7) Reset Password");
+		System.out.println();
+	}
+	
+	private static void admin()
+	{
+		System.out.println();
+		System.out.println("1) Unlock An Account");
+		System.out.println("2) LogOut");
 		System.out.println();
 	}
 	
@@ -45,7 +54,6 @@ public class Runner extends Thread{
 	{
 		Account account = new Account();
 		account.setAccountHolder(input.getString("Account Holder Name : "));
-		account.setPinNumber(input.getInt("Account Pin No. "));
 		account.setBalance(input.getInt("Balance : "));
 		
 		try
@@ -201,19 +209,57 @@ public class Runner extends Thread{
 		}
 	}
 	
+	private void resetPassword(String fromAccNo, short password1, short password2)
+	{
+		
+		try
+		{
+			System.out.println(api.resetPassword(fromAccNo, password1, password2));
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
+	
 	public void handleATMProcess()
 	{
-//		try
-//		{
+		try
+		{
 		    String fromAccNo = input.getString("Account No : ");
+		    
+		    System.out.println(api.accNoVerify(fromAccNo));
 		    
 		    int pin = input.getInt("PIN : ");
 		    
 		    System.out.println(api.login(fromAccNo, pin));
-		    
-			if(api.login(fromAccNo, pin).contains("Welcome"))
-			{
-				
+			
+		    if(api.login(fromAccNo, pin).contains("locked"))
+		    {
+		    	boolean flagger = true;
+		    	while(flagger)
+		    	{
+		    		admin();
+		    		int progress = input.getInt("");
+		    		switch(progress)
+		    		{
+		    		case 1:
+		    			String unlockAccNo = input.getString("Enter Unlocking AccNo : ");
+		    			api.unlockAccount(unlockAccNo);
+		    			System.out.println("Account Unlocked");
+		    			break;
+		    		case 2:
+		    			flagger = false;
+		    			System.out.println("Bye Admin!");
+		    			break;
+		    		default:
+		    			System.out.println("Select Wisely");
+		    			break;
+		    		}
+		    	}
+		    }
+		    else
+		    {
 			boolean flag = true;
 			
 			while(flag)
@@ -261,17 +307,27 @@ public class Runner extends Thread{
 			case 6:
 				miniStatement(fromAccNo);
 				break;
+			case 7:
+			{
+				short password1 = (short) input.getShort("Enter New Password : ");
+				
+				short password2 = (short) input.getShort("Re-Enter New Password : ");
+				
+				resetPassword(fromAccNo,password1,password2);
+			}
+			break;
 			default :
 				System.out.println("Invalid Operation!");
-			}
+				break;
 			}
 			}
 			
-//		}
-//		catch(ManualException e)
-//		{
-//			System.out.println(e.getMessage());
-//		}
+		}
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
 	}
 
 

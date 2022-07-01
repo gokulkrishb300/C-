@@ -31,7 +31,7 @@ public class AtmAPI {
 	
 	
 	@SuppressWarnings("unchecked")
-	private int accountNo() throws ManualException
+	private int accountNo() throws ManualException															//AccountNoGenerate
 	{
 		keyMap.put("Account.No",String.valueOf(++accNo));
 		json.jsonWrite(keyMap,"KeyMap.json");
@@ -39,7 +39,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private int transactionNo() throws ManualException
+	private int transactionNo() throws ManualException														//transactionNoGenerate
 	{
 		keyMap.put("Transaction.No" , String.valueOf(++transactionNo));
 		json.jsonWrite(keyMap, "KeyMap.json");
@@ -67,7 +67,7 @@ public class AtmAPI {
 //	}
 	
 	@SuppressWarnings("unchecked")
-	public String customerDetails(Account account) throws ManualException
+	public String customerDetails(Account account) throws ManualException								//CustomerDetails
 	{
 		int accountNo = accountNo();
 		
@@ -106,16 +106,16 @@ public class AtmAPI {
 		return "\nAccount created for "+account.getAccountHolder();
 	}
 	
-	public JSONObject readCustomerDetails() throws ManualException
+	public JSONObject readCustomerDetails() throws ManualException									  	//readCustomerDetails
 	{
 		return json.jsonRead("CustomerDetails.json");
 	}
 	
-	public JSONObject readKey() throws ManualException
+	public JSONObject readKey() throws ManualException													//readKey
 	{
 		return json.jsonRead("KeyMap.json");
 	}
-	public String load() throws ManualException
+	public String load() throws ManualException															//load
 	{
 		
 		keyMap =  readKey();
@@ -151,7 +151,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String initialATMBalance(String noOfTwos, String noOfFives, String noOfHuns) throws ManualException
+	public String initialATMBalance(String noOfTwos, String noOfFives, String noOfHuns) throws ManualException			//initialATMBalance
 	{
 		bankATM.put("2000", noOfTwos);
 		bankATM.put("500", noOfFives);
@@ -170,17 +170,17 @@ public class AtmAPI {
 		return fmt+"\n Total Amount Available in the ATM = "+sum+"₹";
 	}
 	
-	public JSONObject readATMBalance() throws ManualException
+	public JSONObject readATMBalance() throws ManualException															//readATMBalance
 	{
 		return json.jsonRead("ATM.json");
 	}
 	
-	public JSONObject readTransaction() throws ManualException
+	public JSONObject readTransaction() throws ManualException														//readTransaction
 	{
 		return json.jsonRead("Transactions.json");
 	}
 	
-	public Formatter customerTable() throws ManualException {
+	public Formatter customerTable() throws ManualException {															//customerTable
 		
 		Formatter fmt = new Formatter();
 		fmt.format("%s %15s %15s %15s\n","Acc No","Account Holder","Pin Number","Account Balance");
@@ -193,7 +193,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public Formatter addATMBalance(int noOfTwos, int noOfFives, int noOfHuns) throws ManualException 
+	public Formatter addATMBalance(int noOfTwos, int noOfFives, int noOfHuns) throws ManualException 			//addATMBalance
 	{
 	//	bankATM = readATMBalance();
 		Formatter fmt = new Formatter();
@@ -221,7 +221,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void removeATMBalance(int noOfTwos, int noOfFiveHuns , int noOfHuns) throws ManualException
+	private void removeATMBalance(int noOfTwos, int noOfFiveHuns , int noOfHuns) throws ManualException					//removeATMBalance
 	{
 		int twoThousand = Integer.valueOf((String) bankATM.get("2000")) - noOfTwos;
 		if(twoThousand < 0)
@@ -246,7 +246,7 @@ public class AtmAPI {
 		json.jsonWrite(bankATM, "ATM.json");
 	}
 	
-	public String viewATMBalance() throws ManualException 
+	public String viewATMBalance() throws ManualException 														//viewATMBalance
 	{
 		//bankATM = readATMBalance();
 		Formatter fmt = new Formatter();
@@ -272,26 +272,97 @@ public class AtmAPI {
 		return fmt+"\n Total Amount Available in the ATM = "+sum+"₹";
 	}
 	
-	public String login(String accNo , int pin)
+	public String accNoVerify(String accNo) throws ManualException
 	{
-		String data = (String) accountMap.get(accNo);
+		if(accNo.equals("100"))
+		{
+			return "Welcome Admin!";
+		}
+		Account account = getAccount(accNo);
 		
-		if(data!=null)
+		if(account==null)
 		{
-		Account account = gson.fromJson(data, Account.class);
-		if(pin == account.getPinNumber())
+			throw new ManualException("Invalid Account Number");
+		}
+		if(!account.isStatus())
 		{
-			return "Welcome "+account.getAccountHolder()+"!";
+			throw new ManualException("Contact Bank to Login");
 		}
-		else
-		{
-			return "Password Incorrect!";
-		}
-		}
-		return "Account Number Incorrect!";
+		return "Welcome "+account.getAccountHolder()+"!";
 	}
 	
-	private Account getAccount(String accNo)
+	public String adminLogin(String accountNo, int pin)
+	{
+		Formatter fmt = new Formatter();
+		int count = 0;
+		fmt.format("%s %15s %15s %15s\n","Acc No","Account Holder","Pin Number","Account Balance");
+		for (int i = 101; i <= accNo; i++) {
+			String data = (String) accountMap.get(String.valueOf(i));
+			Account acc = gson.fromJson(data, Account.class);
+			if(!acc.isStatus())
+				count++;
+			fmt.format("%s %15s %15s %15s\n", acc.getAccNo(), acc.getAccountHolder(), acc.getPinNumber(),acc.getBalance());
+			}
+		return fmt+"Totally "+count+" locked accounts";
+	}
+	
+	public void unlockAccount(String accNo) throws ManualException
+	{
+		Account account = getAccount(accNo);
+		
+		account.setStatus(true);
+		
+		account.setWrongCount(2);
+		
+		account.setPinNumber((short) 1234);
+		
+		try {
+			putAccount(accNo,account);
+		} catch (Exception e) 
+		{
+		throw new ManualException("Failed in unlocking the account");
+		}
+	}
+	
+	public String login(String accNo,int pin) throws ManualException																		//login
+	{
+		if(accNo.equals("100") && pin == 1000)
+		{
+			return adminLogin(accNo,pin);
+		}
+		
+		Account account = getAccount(accNo);
+	
+		if(pin != account.getPinNumber())
+		{
+			int getCount = account.getWrongCount();
+			if(getCount==0)
+			{
+				account.setStatus(false);
+				putAccount(accNo,account);
+				throw new ManualException("Maximum number of incorrect password limit exceeded");
+			}
+			account.setWrongCount(--getCount);
+			
+			putAccount(accNo,account);
+			throw new ManualException("Password Incorrect\n "+(account.getWrongCount()+1)+" chances left");
+		}
+		account.setWrongCount(2);
+		putAccount(accNo,account);
+		return "";
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void putAccount(String accNo,Account account) throws ManualException
+	{
+		String data = gson.toJson(account);
+		
+		accountMap.put(accNo, data);
+		
+		json.jsonWrite(accountMap, "CustomerDetails.json");
+		
+	}
+	private Account getAccount(String accNo)																		//getAccount
 	{
 		String data = (String) accountMap.get(accNo);
 		
@@ -300,7 +371,7 @@ public class AtmAPI {
 		return account;
 	}
 	
-	public String balance(String accNo)
+	public String balance(String accNo)																					//balance
 	{
 		Account account = getAccount(accNo);
 		
@@ -308,7 +379,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String depositMoney(String fromAccNo,int noOfTwos, int noOfFiveHuns, int noOfHuns) throws ManualException
+	public String depositMoney(String fromAccNo,int noOfTwos, int noOfFiveHuns, int noOfHuns) throws ManualException	//deposit
 	{
 		Account account = getAccount(fromAccNo);
 		
@@ -383,7 +454,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String withdraw(String fromAccNo, int amount) throws ManualException 
+	public String withdraw(String fromAccNo, int amount) throws ManualException 								//withdraw
 	{
 		Account account = getAccount(fromAccNo);
 		
@@ -407,7 +478,8 @@ public class AtmAPI {
 		{
 			fiveHundred = (amount-(twoThousand*2000))/500;
 		}
-			hundred = (amount-((twoThousand*2000)+(fiveHundred*500)))/100;
+		hundred = (amount-((twoThousand*2000)+(fiveHundred*500)))/100;
+			
 		if(account!=null)
 		{
 			 balance = account.getBalance()-amount;
@@ -468,7 +540,7 @@ public class AtmAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public String transferMoney(String fromAccNo,String toAccNo, int amount) throws ManualException
+	public String transferMoney(String fromAccNo,String toAccNo, int amount) throws ManualException					//transfer money
 	{
 		if(fromAccNo.equals(toAccNo))
 		{
@@ -609,7 +681,7 @@ public class AtmAPI {
 		return "Money Transferred to "+toAccount.getAccountHolder()+" account successfully!";
 	}
 	
-	public Formatter miniStatement(String accNo) throws ManualException
+	public Formatter miniStatement(String accNo) throws ManualException											//mini-statement
 	{
 		JSONObject jsonObj =  json.jsonRead(accNo+"_transactions.json");
 		
@@ -648,6 +720,25 @@ public class AtmAPI {
 			return fmt;
 		}
 		throw new ManualException("No Transaction Files");
+	}
+	
+	public String resetPassword(String accNo,short newPassword1, short newPassword2) throws ManualException
+	{
+		if(newPassword1!=newPassword2)
+		{
+			return "Credentials Incorrect";
+		}
+		Account account = getAccount(accNo);
+		
+		account.setPinNumber(newPassword1);
+		
+		try {
+			putAccount(accNo,account);
+		} catch (Exception e)
+		{
+			throw new ManualException("Resetting new Password made Error\n Try Later");
+		}
+		return "Your Updated Password : "+account.getPinNumber();
 	}
 	
 	
