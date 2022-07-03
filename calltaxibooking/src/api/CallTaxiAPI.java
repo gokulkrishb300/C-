@@ -17,6 +17,7 @@ import com.google.gson.Gson;
 import accountdeclare.Booking;
 import accountdeclare.Customer;
 import accountdeclare.Points;
+
 import accountdeclare.TravelHistory;
 import json.Json;
 import manualexception.ManualException;
@@ -57,17 +58,22 @@ public class CallTaxiAPI {
 		{
 			throw new ManualException("Getting bookingId from Taxi-"+taxiNo+" becomes failed");
 		}
-		String noOfBooking = (String) jsonObj.get("No.of_Bookings");
+		String noOfPersons = (String) jsonObj.get("No.of_Persons");
 		
 		String earnings = (String) jsonObj.get("Earnings");
 		
 		int newEarnings = Integer.valueOf(earnings)+charges;
 		
-		int bookId = Integer.valueOf(noOfBooking);
+		int person = Integer.valueOf(noOfPersons);
 		
-		jsonObj.put("No.of_Bookings", String.valueOf(++bookId));
+		if(person == 3 )
+		{
+			
+		}
 		
-		taxiHistoryId = bookId+"";
+		jsonObj.put("No.of_Persons", String.valueOf(++person));
+		
+		taxiHistoryId = person+"";
 		
 		jsonObj.put("Earnings", String.valueOf(newEarnings));
 		
@@ -136,6 +142,11 @@ public class CallTaxiAPI {
 	{
 		return json.jsonRead("Taxi_History.json");
 	}
+	
+	private JSONObject readTimingMap() throws ManualException 
+	{
+		return json.jsonRead("Taxi-Timings.json");
+	}
 																						
 	public String load() throws ManualException 												//load
 	{
@@ -148,7 +159,7 @@ public class CallTaxiAPI {
 		
 		if(keyMap!=null)
 		{
-			String no_Of_Taxis = (String) keyMap.get("No.Of_Taxis");
+			String no_Of_Taxis = (String) keyMap.get("No.of_Taxis");
 			
 			String bookingID = (String) keyMap.get("bookingId");
 			
@@ -188,11 +199,14 @@ public class CallTaxiAPI {
 					
 					if(travelProgress!=null)
 					{
-						return "Key Details Loaded\nCustomer Details Loaded\nBooking Details Loaded\nTravel History Loaded";
+						timingMap = readTimingMap();
+						
+						if(timingMap!=null)
+						{
+							return "Key Details Loaded\nCustomer Details Loaded\nBooking Details Loaded\nTravel History Loaded\nTiming Details Loaded";
+						}
 					}
-					
 				}
-				
 			}
 		}
 		return "Load Failed";
@@ -202,7 +216,7 @@ public class CallTaxiAPI {
 	public String nFleet(int noOfTaxi_s) throws ManualException 							//Fleet Initializer
 	{
 		noOfTaxis = noOfTaxi_s;
-		keyMap.put("No.Of_Taxis", noOfTaxi_s+"");
+		keyMap.put("No.of_Taxis", noOfTaxi_s+"");
 		try {
 			json.jsonWrite(keyMap, "KeyDetails.json");
 		} catch (Exception e) 
@@ -210,16 +224,16 @@ public class CallTaxiAPI {
 			throw new ManualException("Json Writing Failed for KeyDetails.json");
 		}
 		Formatter fmt = new Formatter();
-		fmt.format("%s %16s %10s %10s\n","Taxi_Name", "No.of_Bookings","Earnings","Current-Location");
+		fmt.format("%s %16s %10s %10s\n","Taxi_Name", "No.of_Persons","Earnings","Current-Location");
 		for(int i = 1 ; i <= noOfTaxi_s ; i++)
 		{
 			JSONObject jsonTaxi = new JSONObject();
 			jsonTaxi.put("Taxi-Name", i+"");
-			jsonTaxi.put("No.of_Bookings", "0");
+			jsonTaxi.put("No.of_Persons", "0");
 			jsonTaxi.put("Earnings", "0");
 			jsonTaxi.put("Current-Location", String.valueOf(Points.A));
 			json.jsonWrite(jsonTaxi, "Taxi-"+i+".json");
-			fmt.format("%3s %11s %12s %15s\n","Taxi-"+jsonTaxi.get("Taxi-Name"),jsonTaxi.get("No.of_Bookings"),jsonTaxi.get("Earnings"),jsonTaxi.get("Current-Location"));
+			fmt.format("%3s %11s %12s %15s\n","Taxi-"+jsonTaxi.get("Taxi-Name"),jsonTaxi.get("No.of_Persons"),jsonTaxi.get("Earnings"),jsonTaxi.get("Current-Location"));
 		}
 		return fmt+"Call Taxi Operator has a fleet of "+noOfTaxi_s+" cars";
 	}
@@ -234,9 +248,9 @@ public class CallTaxiAPI {
 		{
 			throw new ManualException("KeyMap Failed to Read Fleet's");
 		}
-		fmt.format("%s %16s %10s %10s\n","Taxi_Name", "No.of_Bookings","Earnings","Current-Location");
+		fmt.format("%s %16s %10s %10s\n","Taxi_Name", "No.of_Persons","Earnings","Current-Location");
 		
-		String value = (String) keyMap.get("No.Of_Taxis");
+		String value = (String) keyMap.get("No.of_Taxis");
 		
 		int noOfTaxi = Integer.valueOf(value);
 		
@@ -249,7 +263,7 @@ public class CallTaxiAPI {
 			{
 				throw new ManualException("Unavailabe Taxi File");
 			}
-			fmt.format("%3s %11s %12s %15s\n","Taxi-"+jsonTaxi.get("Taxi-Name"), jsonTaxi.get("No.of_Bookings"),jsonTaxi.get("Earnings"),jsonTaxi.get("Current-Location"));
+			fmt.format("%3s %11s %12s %15s\n","Taxi-"+jsonTaxi.get("Taxi-Name"), jsonTaxi.get("No.of_Persons"),jsonTaxi.get("Earnings"),jsonTaxi.get("Current-Location"));
 		}
 		return "NoOfTaxis : "+noOfTaxi+"\n"+fmt;		
 	}
@@ -268,6 +282,22 @@ public class CallTaxiAPI {
 		return value;
 	}
 	
+	private void charges(Booking booking,TravelHistory travelHistory,byte bookingType)
+	{
+		if(bookingType == 1)
+		{
+			short temp = (short)(calculate(booking)*10);
+			booking.setCharges(temp);
+			travelHistory.setCharges(temp);
+		}
+		else
+		{
+			short temp = (short)(calculate(booking)*10*0.4);
+			booking.setCharges(temp);
+			travelHistory.setCharges(temp);
+		}
+	}
+	
 	public void validTime(String startTime) throws ManualException												//validatingStartTime
 	{
 		String regex = "(1[012]|[1-9])."+"[0-5][0-9](\\s)"+"?(?i)(am|pm)";
@@ -281,7 +311,8 @@ public class CallTaxiAPI {
 			throw new ManualException("Invalid Time\nBooking Cancelled");
 		}
 	}
-	private String endTime(String taxiName,String startTime , String startPoint, String endPoint,String bookingType) throws ManualException			//predicting End Time
+	@SuppressWarnings("unchecked")
+	private String endTime(String taxiNo,String startTime , String startPoint, String endPoint,String bookingType) throws ManualException			//predicting End Time
 	{
 		List<String> list = new ArrayList<>();
 		
@@ -337,15 +368,53 @@ public class CallTaxiAPI {
 		
 		if(bookingType.equals("2"))
 		{
-		System.out.println(list);
+			for(String time : list)
+			{
+			timingMap.put(time,taxiNo);
+			}
+			json.jsonWrite(timingMap, "Taxi-Timings.json");
 		}
 //		System.out.println(hour+"."+minutes+""+meridiem);
 		return hour+"."+minutes+""+meridiem;
 	}
 	
 	@SuppressWarnings("unchecked")
+	public String dispatchPassenger(String taxiNo) throws ManualException
+	{
+		JSONObject jsonObj = readTaxi(taxiNo);
+		
+		jsonObj.put("No.of_Persons", "0");
+		
+		json.jsonWrite(jsonObj, "Taxi-"+taxiNo+".json");
+		
+		return "Taxi "+taxiNo+" freed";
+	}
+	
+	
+	private void alert() throws ManualException
+	{
+		int count = 0;
+		for(int i = 1 ; i <=noOfTaxis ; i++)
+		{
+			JSONObject jsonObj = readTaxi(i+"");
+	
+			if(jsonObj.get("No.of_Persons").equals("3"))
+			{
+				count++;
+			}
+			if(count == noOfTaxis)
+			{
+				throw new ManualException("All Taxis are full\nBooking Cancelled");
+			}	
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	public String ticketBooking(Booking booking,TravelHistory travelHistory) throws ManualException				//Ticket Booking
 	{
+
+		alert();
+		
 		Customer customer = getCustomer(String.valueOf(booking.getCustomerId()));
 		
 		if(customer==null)
@@ -358,29 +427,59 @@ public class CallTaxiAPI {
 			throw new ManualException("Starting and Destination shouldn't be same\nBooking Cancelled");
 		}
 		
+		String getTime = booking.getTime();
+
+		String timingMapResult = (String) timingMap.get(getTime);
+		
+		if(timingMapResult!=null)
+		{
+		JSONObject jsonObj = readTaxi(timingMapResult);
+		
+		String noOfPerson = (String) jsonObj.get("No.of_Persons");
+		
+		String taxiDestination = (String) jsonObj.get("Current-Location");
+		
+		if(Integer.valueOf(noOfPerson)==3||!taxiDestination.equals(booking.getDestinationPoint()+""))
+		{
+			timingMapResult=null;
+		}
+		
+		}
+		
 		String taxiNo = null;
 		String destination = null;
 		String taxiName = null;
 		try {
+			if(timingMapResult!=null)
+			{
+				taxiNo = timingMapResult;
+				charges(booking,travelHistory,(byte) 2);
+			}
+			else
+			{
 			taxiNo = allotedTaxi(booking.getStartingPoint()+"");
-			
+			dispatchPassenger(taxiNo);
+			}
 			destination = booking.getDestinationPoint()+"";
 		
 			taxiName = "Taxi-"+taxiNo;
 			
 			booking.setTaxi(taxiName);
 			
+			charges(booking,travelHistory,booking.getBookingType()); 
 		} catch (Exception e)
 		{
 			throw new ManualException("Ticket Booking Failed at Taxi allocating\nBooking Cancelled");
 		}
+		
+		
 		short earnings = booking.getCharges();
 		
 		int bookingId = bookingId(taxiNo,earnings,destination);
 		
 		booking.setBookingId(bookingId);
 		
-		String endTime = endTime(taxiName, booking.getTime()+"",booking.getStartingPoint()+"",booking.getDestinationPoint()+"",booking.getBookingType()+"");
+		String endTime = endTime(taxiNo, booking.getTime()+"",booking.getStartingPoint()+"",booking.getDestinationPoint()+"",booking.getBookingType()+"");
 		
 		String data = gson.toJson(booking);
 		
@@ -409,6 +508,8 @@ public class CallTaxiAPI {
 		
 		json.jsonWrite(travelProgress, "Taxi_History.json");
 		
+
+		
 		return "Booking ID : "+booking.getBookingId()+"\n"+"Alloted Taxi : "+booking.getTaxi();
 		
 	}
@@ -425,10 +526,10 @@ public class CallTaxiAPI {
 		throw new ManualException("BookingID not found");
 	}
 	
-	public Formatter getTravelHistory(String taxiName) throws ManualException							//Get TravelHistory
+	public Formatter getTravelHistory(String taxiNo) throws ManualException							//Get TravelHistory
 	{
 		
-		JSONObject jsonObj = (JSONObject) travelProgress.get("Taxi-"+taxiName);
+		JSONObject jsonObj = (JSONObject) travelProgress.get("Taxi-"+taxiNo);
 		
 		Formatter fmt = new Formatter();
 		
@@ -505,7 +606,7 @@ public class CallTaxiAPI {
 			{
 				oldMinDistance = newMinDistance;
 				
-					if(actualEarnings <= minEarnings)
+					if(actualEarnings < minEarnings)
 					{
 						minEarnings = actualEarnings;
 					

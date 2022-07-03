@@ -33,6 +33,7 @@ public class Runner {
 		System.out.println("6)Taxi Booking");
 		System.out.println("7)Get Taxi TravelHistory");
 		System.out.println("8)Get BookedId Details");
+		System.out.println("9)Drop Passengers");
 		System.out.println();
 	}
 	
@@ -261,9 +262,6 @@ public class Runner {
 				{
 					booking.setBookingType(noShare);
 					travelHistory.setBookingType(noShare);
-					short temp = (short)(distance*10);
-					booking.setCharges(temp);
-					travelHistory.setCharges(temp);
 					flag = false;
 					break;
 				}
@@ -271,9 +269,6 @@ public class Runner {
 				{
 					booking.setBookingType(share);
 					travelHistory.setBookingType(share);
-					short temp = (short)(distance*10*0.4);
-					booking.setCharges(temp);
-					travelHistory.setCharges(temp);
 					flag = false;
 					break;
 				}
@@ -298,6 +293,19 @@ public class Runner {
 		}
 	}
 	
+	private void dropPersons()
+	{
+		String taxiNo = input.getString("Enter Taxi-No : ");
+		
+		try
+		{
+			System.out.println(api.dispatchPassenger(taxiNo));
+		}
+		catch(ManualException e)
+		{
+			System.out.println(e.getMessage());
+		}
+	}
 	private void getBookedId()
 	{
 		String bookedId = input.getString("Booked-Id : ");
@@ -403,6 +411,9 @@ public class Runner {
 				break;
 			case 8:
 				run.getBookedId();
+				break;
+			case 9:
+				run.dropPersons();
 				break;
 			default:
 				System.out.println("Invalid Process");
