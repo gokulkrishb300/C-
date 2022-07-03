@@ -336,19 +336,19 @@ public class Runner {
 				System.out.println("Search Cancelled");
 				break;
 			case 1:
-				System.out.println("Taxi-"+api.searchTaxis("A"));
+				System.out.println("Taxi-"+api.allotedTaxi("A"));
 				break;
 			case 2:
-				System.out.println("Taxi-"+api.searchTaxis("B"));
+				System.out.println("Taxi-"+api.allotedTaxi("B"));
 				break;
 			case 3:
-				System.out.println("Taxi-"+api.searchTaxis("C"));
+				System.out.println("Taxi-"+api.allotedTaxi("C"));
 				break;
 			case 4:
-				System.out.println("Taxi-"+api.searchTaxis("D"));
+				System.out.println("Taxi-"+api.allotedTaxi("D"));
 				break;
 			case 5:
-				System.out.println("Taxi-"+api.searchTaxis("E"));
+				System.out.println("Taxi-"+api.allotedTaxi("E"));
 				break;
 			default:
 				System.out.println("Enter Wisely");

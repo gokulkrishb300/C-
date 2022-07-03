@@ -35,6 +35,7 @@ public class CallTaxiAPI {
 	JSONObject keyMap = new JSONObject();
 	JSONObject bookingDetails = new JSONObject();
 	JSONObject travelProgress  = new JSONObject();
+	JSONObject timingMap = new JSONObject();
 	
 	@SuppressWarnings("unchecked")
 	private int customerId() throws ManualException													//CustomerId Generator	
@@ -290,9 +291,13 @@ public class CallTaxiAPI {
 		
 		int value = Math.abs(ePoint-stPoint);
 		
-		int endTime = Math.abs(ePoint-stPoint)*15;
-		
 		String[] hr = startTime.split("\\.");
+		
+		int hour = Integer.valueOf(hr[0]);
+		
+		String min = hr[1].substring(0,2);
+		
+		int minutes = Integer.valueOf(min);
 		
 		String meridiem = null;
 		
@@ -304,16 +309,38 @@ public class CallTaxiAPI {
 		{
 			meridiem = "PM";
 		}
-		if(bookingType.equals("2"))
-		{
+		
+		
 		for(int i = 1 ; i <= value ; i++)
 		{
-			list.add(hr[0]+"."+i*15+""+meridiem);
+			minutes += 15;
+			if(minutes >=60)
+			{
+				hour++;
+				minutes -= 60;
+				String temp = String.valueOf(minutes);
+				if(temp.length()==1)
+				{
+					temp ="0"+temp;
+					list.add(hour+"."+temp+""+meridiem);
+				}
+				else
+				{
+					list.add(hour+"."+minutes+""+meridiem);
+				}
+			}
+			else
+			{
+			list.add(hour+"."+minutes+""+meridiem);
+			}
 		}
 		
+		if(bookingType.equals("2"))
+		{
 		System.out.println(list);
 		}
-		return hr[0]+"."+endTime+""+meridiem;
+//		System.out.println(hour+"."+minutes+""+meridiem);
+		return hour+"."+minutes+""+meridiem;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -335,7 +362,7 @@ public class CallTaxiAPI {
 		String destination = null;
 		String taxiName = null;
 		try {
-			taxiNo = searchTaxis(booking.getStartingPoint()+"");
+			taxiNo = allotedTaxi(booking.getStartingPoint()+"");
 			
 			destination = booking.getDestinationPoint()+"";
 		
@@ -428,88 +455,73 @@ public class CallTaxiAPI {
 		throw new ManualException("Taxi-Name Unavailable");
 	}
 	
-	public String searchTaxis(String point) throws ManualException 								//Search Taxis Normal
+	public String allotedTaxi(String point) throws ManualException
 	{
-        List<String> list = new ArrayList<>();
+		List<String> list = new ArrayList<>();
 		
 		for(int i = 1 ; i <= noOfTaxis ; i++)
 		{
-			JSONObject json;
-			try {
-				json = readTaxi(i+"");
-			} catch (Exception e) {
-				//
-				throw new ManualException("Read Failed");
-			}
-			String location = json.get("Current-Location")+"";
+			JSONObject jsonObj = readTaxi(i+"");
 			
-			if(location.equals(point))
+			String currentLocation = (String) jsonObj.get("Current-Location");
+			
+			if(point.equals(currentLocation))
 			{
-				list.add( json.get("Taxi-Name")+"");
+				list.add(i+"");
+			}
+		}
+		
+		int currentLocationTaxis = list.size();
+		
+		if(currentLocationTaxis == 1)
+		{
+			return list.get(0);
+		}
+		
+		return taxiWithLowEarnings(point);
+	}
+	
+	public String taxiWithLowEarnings(String point) throws ManualException
+	{
+		int minEarnings = Integer.MAX_VALUE;
+		
+		int oldMinDistance = Integer.MAX_VALUE;
+		
+		List<String> list = new ArrayList<>();
+		
+		for(int i = 1 ; i <= noOfTaxis ; i++)
+		{
+			JSONObject jsonObj = readTaxi(i+"");
+			
+			String taxiLocation = (String) jsonObj.get("Current-Location");
+			
+			String taxiEarnings = (String) jsonObj.get("Earnings");
+			
+			int newMinDistance = Math.abs(taxiLocation.charAt(0)-point.charAt(0));
+			
+			int actualEarnings = Integer.valueOf(taxiEarnings);
+			
+			if(taxiLocation.equals(point) || (newMinDistance <= oldMinDistance))
+			{
+				oldMinDistance = newMinDistance;
+				
+					if(actualEarnings <= minEarnings)
+					{
+						minEarnings = actualEarnings;
+					
+					    list.add(i+"");
+					}
 			}
 		}
 		int size = list.size();
-		if(size==0)
-		{
-			return getNearbyTaxi(point);
-		}
+		
 		if(size == 1)
 		{
 			return list.get(0);
 		}
-		return searchTaxisByEarnings(point);
+		
+		return list.get(size-1);
 	}
 	
-	public String searchTaxisByEarnings(String point) throws ManualException					//Search Taxis by Earnings
-	{
-		Set<String> set = new TreeSet<>();
-		
-		int minEarnings = Integer.MAX_VALUE;
-		
-		for(int i = 1 ; i <= noOfTaxis ; i++)
-		{
-			JSONObject json = readTaxi(i+"");
-			String location = json.get("Current-Location")+"";
-			String earnings = json.get("Earnings")+"";
-			int earn = Integer.valueOf(earnings);
-			
-			if(minEarnings > earn && location.equals(point))
-			{
-				minEarnings = earn;
-				set.add(json.get("Taxi-Name")+"");
-			}
-		}
-		int size = set.size();
 	
-		
-		String taxi[] = set.toArray(new String[size]);
-
-		return taxi[taxi.length-1];
-	}
-	
-	public String getNearbyTaxi(String point) throws ManualException
-	{
-		Set<String> set = new TreeSet<>();
-
-		char currentPlace = point.charAt(0);
-		
-		int lowDistance = Integer.MAX_VALUE;
-		
-		for(int i = 1 ; i <= noOfTaxis ; i++)
-		{
-			JSONObject json = readTaxi(i+"");
-			String location = json.get("Current-Location")+"";
-			char vehiclePlace = location.charAt(0);
-			int minimumDistance = Math.abs(currentPlace-vehiclePlace);
-			if(minimumDistance < lowDistance)
-			{
-				lowDistance = minimumDistance;
-				set.add(json.get("Taxi-Name")+"");
-			}
-		}
-		int size = set.size();
-		String taxi[] = set.toArray(new String[size]);
-		
-		return taxi[taxi.length-1];
-	}
 }
