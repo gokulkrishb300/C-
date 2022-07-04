@@ -1,0 +1,1 @@
+{"Deliver_Location":"C","Executive":"1","Total":"80","No.of_Order":"5","Deliver_Charges":"70","Allowance":"10"}

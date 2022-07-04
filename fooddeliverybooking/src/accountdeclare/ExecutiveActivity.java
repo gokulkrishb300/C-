@@ -8,7 +8,7 @@ public class ExecutiveActivity {
 	private byte orders;
 	private String pickupTime;
 	private String deliveryTime;
-	private String deliveryCharge;
+	private byte deliveryCharge;
 	
 	public int getTrip() {
 		return trip;
@@ -52,10 +52,10 @@ public class ExecutiveActivity {
 	public void setDeliveryTime(String deliveryTime) {
 		this.deliveryTime = deliveryTime;
 	}
-	public String getDeliveryCharge() {
+	public byte getDeliveryCharge() {
 		return deliveryCharge;
 	}
-	public void setDeliveryCharge(String deliveryCharge) {
+	public void setDeliveryCharge(byte deliveryCharge) {
 		this.deliveryCharge = deliveryCharge;
 	}
 	@Override

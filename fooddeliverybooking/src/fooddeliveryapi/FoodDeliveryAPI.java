@@ -1,8 +1,8 @@
 package fooddeliveryapi;
 
-import java.util.ArrayList;
+
 import java.util.Formatter;
-import java.util.List;
+
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -83,18 +83,27 @@ public class FoodDeliveryAPI {
 	
 	private JSONObject readBookings() throws ManualException							//BookingsRead
 	{
-		return json.jsonRead("Bookings.json");
+		return json.jsonRead("BookingDetails.json");
 	}
 	
-	private JSONObject readDE(String deNo) throws ManualException					//DeliveryExecutvieRead
+	public JSONObject readDE(String deNo) throws ManualException					//DeliveryExecutvieRead
 	{
-		return json.jsonRead("DE-"+deNo+".json");
+		return json.jsonRead("DE"+deNo+".json");
+	}
+	
+	private JSONObject readDelivery() throws ManualException
+	{
+		return json.jsonRead("DeliveryHistory.json");
+	}
+	
+	private JSONObject readTiming() throws ManualException
+	{
+		return json.jsonRead("TimingDetails.json");
 	}
 	
 	public String load() throws ManualException 												//load
 	{
-		try {
-			
+		
 			keyMap = readKey();
 	
 		   if(keyMap!=null)
@@ -103,11 +112,15 @@ public class FoodDeliveryAPI {
 			
 			String bookingID = (String) keyMap.get("bookingId");
 			
+			String tripNo = (String) keyMap.get("Trip");
+			
+			String customerID = (String) keyMap.get("customerId");
+			
+			trip = Integer.valueOf(tripNo);
+			
 			noOfDeliveryExecutives = Integer.valueOf(noOfDE);
 			
 			bookingId = Integer.valueOf(bookingID);
-			
-			String customerID = (String) keyMap.get("customerId");
 			
 			customerId = Integer.valueOf(customerID);
 			
@@ -119,15 +132,18 @@ public class FoodDeliveryAPI {
 
 				if(bookingDetails!=null)
 				{
-					return "Key Loaded\nCustomer Details Loaded\nBooking Details Loaded";
+					deliveryHistory = readDelivery();
+					
+					timingMap = readTiming();
+					
+					if(timingMap!=null)
+					{
+						return "Key Loaded\nCustomer Details Loaded\nBooking Details Loaded\nDelivery History Loaded\nTiming Details Loaded";
+					}
 				}
 			}
 		  }   
-		}
-		catch(Exception e)
-		{
-			throw new ManualException("Json Bookings load Failed");
-		}
+		
 		return "Load Failed";
 	}
 	
@@ -143,7 +159,8 @@ public class FoodDeliveryAPI {
 		throw new ManualException("BookingID not found");
 	}
 	
-	public void validTime(String startTime) throws ManualException												//validatingStartTime
+	@SuppressWarnings("unchecked")
+	public String validTime(String startTime,Booking booking, ExecutiveActivity executive) throws ManualException												//validatingStartTime
 	{
 		String regex = "(1[012]|[1-9])."+"[0-5][0-9](\\s)"+"?(?i)(am|pm)";
 		
@@ -155,7 +172,91 @@ public class FoodDeliveryAPI {
 		{
 			throw new ManualException("Invalid Time\nBooking Cancelled");
 		}
+		
+		String deNo = (String) timingMap.get(startTime);
+		
+		if(deNo!=null)
+		{
+			JSONObject jsonObj = readDE(deNo);
+			
+			String current_Location = (String) jsonObj.get("Deliver_Location");
+			
+			String destinationPoint = executive.getDestinationPoint().toString();
+			
+			
+			if(!current_Location.equals(destinationPoint))
+			{
+				return "";
+			}
+			
+			String order = (String) jsonObj.get("No.of_Order");
+			
+			if(order.equals("5"))
+			{
+				return "";
+			}
+			
+			int noOfOrder = Integer.valueOf(order)+1;
+			
+			jsonObj.put("No.of_Order", noOfOrder+"");
+			
+			int deliveryCharge = 50+ 5*(noOfOrder-1);
+			
+			jsonObj.put("Deliver_Charges", deliveryCharge+"");
+			
+			String value1 = (String) jsonObj.get("Allowance");
+			
+			int allowance = Integer.valueOf(value1);
+			
+			int total = allowance + deliveryCharge;
+			
+			executive.setOrders((byte)noOfOrder);
+			
+			executive.setDeliveryCharge((byte)deliveryCharge);
+			
+			jsonObj.put("Total", total+"");
+			
+			json.jsonWrite(jsonObj, "DE"+deNo+".json");
+			
+			for(int i = 1; i <= trip ; i++)
+			{
+				String data = (String) deliveryHistory.get(i+"");
+				
+				ExecutiveActivity activity = gson.fromJson(data, ExecutiveActivity.class);
+				
+				if((activity.getDestinationPoint()+"").equals(destinationPoint))
+				{
+					executive.setTrip(activity.getTrip());
+					executive.setExeNo(activity.getExeNo());
+					executive.setPickupTime(activity.getPickupTime());
+					executive.setDeliveryTime(activity.getDeliveryTime());
+					String executiveData = gson.toJson(executive);
+					deliveryHistory.put(activity.getTrip()+"", executiveData);
+				}
+			}
+			
+			json.jsonWrite(jsonObj, "DeliveryHistory.java");
+			
+			booking.setBookingId(++bookingId);
+			
+			booking.setTime(startTime);
+			
+			keyMap.put("bookingId", bookingId+"");
+			
+			json.jsonWrite(keyMap, "KeyDetails.json");
+			
+			String bookingData = gson.toJson(booking);
+			
+			bookingDetails.put(bookingId+"", bookingData);
+			
+			json.jsonWrite(bookingDetails, "BookingDetails.json");
+			
+			return "Booking ID : "+bookingId+"\nAlloted Delivery Executive : "+"DE"+deNo;
+		}
+		return "";
 	}
+	
+	
 	
 	
 	@SuppressWarnings("unchecked")
@@ -179,9 +280,10 @@ public class FoodDeliveryAPI {
 			jsonObj.put("No.of_Order", "0");
 			jsonObj.put("Deliver_Charges", "0");
 			jsonObj.put("Total", "0");
+			jsonObj.put("Deliver_Location", Points.A+"");
 			
 			json.jsonWrite(jsonObj, "DE"+i+".json");
-			fmt.format("%3s %11s %12s %11s\n","DE-"+jsonObj.get("Executive"),jsonObj.get("Allowance"),jsonObj.get("Deliver_Charges"),jsonObj.get("Total"));
+			fmt.format("%3s %11s %12s %11s\n","DE"+jsonObj.get("Executive"),jsonObj.get("Allowance"),jsonObj.get("Deliver_Charges"),jsonObj.get("Total"));
 		}
 		return fmt+"Food Delivery Company has a fleet of "+noOfDeliveryExecutives+" cars";
 	}
@@ -216,7 +318,7 @@ public class FoodDeliveryAPI {
 		return "NoOfDeliveryExecutives	 : "+noOfDE+"\n"+fmt;		
 	}
 	
-	public Formatter beforeBooking() throws ManualException
+	public String beforeBooking() throws ManualException
 	{
 		Formatter fmt = new Formatter();
 		
@@ -241,9 +343,9 @@ public class FoodDeliveryAPI {
 			{
 				throw new ManualException("Unavailabe Executive File");
 			}
-			fmt.format("%3s %11s %12s %11s\n","DE"+jsonObj.get("Executive"),jsonObj.get("Deliver_Charges"));
+			fmt.format("%3s %11s\n","DE"+jsonObj.get("Executive"),jsonObj.get("Deliver_Charges"));
 		}
-		return fmt;		
+		return "\nAvailable Executives :\n"+fmt;		
 	}
 	
 	public String allotDeliveryExecutive() throws ManualException
@@ -286,11 +388,11 @@ public class FoodDeliveryAPI {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private String deliveryTime(Booking booking, ExecutiveActivity executive)
+	private void deliveryTime(Booking booking, ExecutiveActivity executive) throws ManualException
 	{
 		String startTime = booking.getTime();
 		
-		List<String> list = new ArrayList<>();
+		Set<String> set = new TreeSet<>();
 
 		String[] hr = startTime.split("\\.");
 		
@@ -311,68 +413,165 @@ public class FoodDeliveryAPI {
 			meridiem = "PM";
 		}
 		
-		int condition = minutes+15;
+		int condition = minutes+45;
 		
-		for(int i = minutes+1 ; i <= condition ; i++)
+	
+		for(int i = minutes+1 ; i <= condition ; i++ )
 		{
-		
+			minutes++;
+			
 			if(minutes >=60)
 			{
 				hour++;
 				minutes -= 60;
+			}
 				String temp = String.valueOf(minutes);
 				if(temp.length()==1)
 				{
 					temp ="0"+temp;
-					list.add(hour+"."+temp+""+meridiem);
+					set.add(hour+"."+temp+""+meridiem);
 				}
 				else
 				{
-					list.add(hour+"."+minutes+""+meridiem);
+			set.add(hour+"."+minutes+""+meridiem);
 				}
-			}
-			else
-			{
-			list.add(hour+"."+minutes+""+meridiem);
-			}
 		}
 		
 		String executiveNo = executive.getExeNo();
 		
-		for(String time : list)
+		int size = set.size();
+	
+		String[] time = new String[size];
+		
+		set.toArray(time);
+		
+		int count = 0;
+		
+		for(int i = 0 ;i < size ; i++)
 		{
-			timingMap.put(time, executiveNo);
+			count++;
+			
+			if(count == 15)
+			{
+				break;
+			}
+			timingMap.put(time[i],executiveNo);
 		}
+		executive.setPickupTime(time[14]);
 		
-		int size = list.size();
+		executive.setDeliveryTime(time[size-1]);
 		
-		executive.setPickupTime(list.get(size-1));
-		
-		executive.setDeliveryTime(meridiem);
+		json.jsonWrite(timingMap, "TimingDetails.json");
 	}
 	
-	public void deliveryBooking(Booking booking,ExecutiveActivity executive ) throws ManualException
-	{
-		String customerId = booking.getCustomerId()+"";
-		
-		Customer customer = getCustomer(customerId);
-		
-		if(customer==null)
-		{
-			throw new ManualException("Customer Not Found\nDelivery Cancel");
-		}
-		
-		
+	@SuppressWarnings("unchecked")
+	public String deliveryBooking(Booking booking,ExecutiveActivity executive ) throws ManualException
+	{	
 		booking.setBookingId(++bookingId);
+		
+		keyMap.put("bookingId", bookingId+"");
 		
 		String deliveryExecutive = allotDeliveryExecutive();
 		
+		JSONObject jsonObj = readDE(deliveryExecutive);
+		
+		String value = (String) jsonObj.get("Allowance");
+		
+		int allowance = Integer.valueOf(value)+10;
+		
+		jsonObj.put("Allowance", allowance+"");
+		
+		String value1 = (String) jsonObj.get("Deliver_Charges");
+		
+		int deliveryCharges = Integer.valueOf(value1)+50;
+		
+		jsonObj.put("Deliver_Charges", deliveryCharges+"");
+		
+		int total = allowance+deliveryCharges;
+		
+		jsonObj.put("Total", total+"");
+		
+		jsonObj.put("Deliver_Location", booking.getDestinationPoint()+"");
+		
+		String value3 = (String) jsonObj.get("No.of_Order");
+		
+		int noOfOrder = Integer.valueOf(value3)+1;
+		
+		jsonObj.put("No.of_Order", noOfOrder+"");
+		
+		json.jsonWrite(jsonObj, "DE"+deliveryExecutive+".json");
+		
 		executive.setExeNo(deliveryExecutive);
 		
-		String deliveryTime = deliveryTime(booking,executive);
+		deliveryTime(booking,executive);
 		
+		executive.setTrip(++trip);
 		
+		keyMap.put("Trip", trip+"");
+		
+		json.jsonWrite(keyMap, "KeyDetails.json");
+		
+		int order = executive.getOrders();
+		
+		executive.setOrders((byte)++order);
+		
+		executive.setDeliveryCharge((byte)50);
+		
+		String bookingData = gson.toJson(booking);
+		
+		bookingDetails.put(bookingId+"", bookingData);
+		
+		String executiveData = gson.toJson(executive);
+		
+		deliveryHistory.put(trip+"", executiveData);
+		
+		json.jsonWrite(bookingDetails, "BookingDetails.json");
+		
+		json.jsonWrite(deliveryHistory, "DeliveryHistory.json");
+		
+		return "Booking ID : "+bookingId+"\nAlloted Delivery Executive : "+"DE"+deliveryExecutive;
 	}
 	
+	
+	@SuppressWarnings("unchecked")
+	public String reduceOrder(String deNo) throws ManualException
+	{
+		JSONObject jsonObj = readDE(deNo);
+		
+		jsonObj.put("No.of_Order","0");
 
+		json.jsonWrite(jsonObj, "DE"+deNo+".json");
+		
+		return "Delivery Executive : "+deNo+" Order Freed";
+	}
+	
+	public Formatter deliveryHistory() throws ManualException
+	{
+		Formatter fmt = new Formatter();
+		
+		fmt.format("%s %10s %10s %10s %10s %10s %10s %10s\n","TRIP","EXECUTIVE","RESTAURANT",
+				"DESTINATION POINT","ORDERS","PICK-UP_TIME","DELIVERY_TIME","DELIVERY CHARGE");
+		
+		String data = null;
+		
+		try
+		{
+			for(int i = 1 ; i <= trip ; i++)
+			{
+				data = (String) deliveryHistory.get(i+"");
+				
+				ExecutiveActivity activity = gson.fromJson(data, ExecutiveActivity.class);
+				
+				fmt.format("%s %10s %10s %10s %18s %10s %10s %10s\n", activity.getTrip(),"DE"+activity.getExeNo(),
+						activity.getRestaurant(),activity.getDestinationPoint(),activity.getOrders(),
+						activity.getPickupTime(),activity.getDeliveryTime(),activity.getDeliveryCharge());
+			}
+		}
+		catch(Exception e)
+		{
+			throw new ManualException("Edho Prechana");
+		}
+		
+		return fmt;
+	}
 }
