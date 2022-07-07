@@ -2,6 +2,7 @@ package zkartapi;
 
 import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Set;
 
 import org.json.*;
@@ -124,13 +125,24 @@ public class ZKartAPI {
 		return "Welcome to Z-Kart, "+customer.getName()+"!";
 	}
 	
-	public Formatter login(String userName , String pwd) throws ManualException
+	public String login(String userName , String password) throws ManualException
 	{
 			Customer customer = getCustomer(userName);
 			
+			int length = password.length();
+			
+			int count = 0;
+			
+			StringBuilder build = new StringBuilder();
+			
+			for(int i = 0 ; i < length ; i++)
+			{
+				build.append(++count+""+password.charAt(i));
+			}
+			
 			if(customer!=null)
 			{
-				if((pwd.hashCode())==Integer.valueOf(customer.getPassword()))
+				if(build.reverse().toString().hashCode()==Integer.valueOf(customer.getPassword()))
 				{
 					return inventoryFormatWithDiscount();
 				}
@@ -143,20 +155,13 @@ public class ZKartAPI {
 	{
 		String category = inventory.getCategory();
 		
-		JSONObject jsonObj = (JSONObject) inventoryMap.get(category);
-		
-		if(jsonObj==null)
-		{
-			jsonObj = new JSONObject();
-			
-			inventoryMap.put(category, jsonObj);
-		}
-		
-		String brand = inventory.getBrand();
+		JSONArray jsonArr = new JSONArray();
 		
 		String data = gson.toJson(inventory);
 		
-		jsonObj.put(brand, data);
+		jsonArr.add(data);
+		
+		inventoryMap.put(category, jsonArr);
 
 		json.jsonWrite(inventoryMap, "z-kart_db.txt");
 		
@@ -168,30 +173,38 @@ public class ZKartAPI {
 	{
 		String category = inventory.getCategory();
 		
-		JSONObject jsonObj = (JSONObject) inventoryMap.get(category);
+		String brandInventory = inventory.getBrand();
 		
-		if(jsonObj==null)
+		String modelInventory = inventory.getModel();
+		
+		JSONArray jsonArr =  (JSONArray) inventoryMap.get(category);
+		
+		if(jsonArr!=null)
 		{
-			jsonObj = new JSONObject();
+			int size = jsonArr.size();
 			
-			inventoryMap.put(category, jsonObj);
+			for(int i = 0 ; i < size ; i++)
+			{
+				String data = (String) jsonArr.get(i);
+				
+				Inventory invent = gson.fromJson(data, Inventory.class);
+				
+				String brand = invent.getBrand();
+				
+				String model = invent.getModel();
+				
+				if(brand.equalsIgnoreCase(brandInventory) && model.equalsIgnoreCase(modelInventory))
+				{
+					int oldStock = invent.getStock();
+					
+					invent.setStock((short)(oldStock+inventory.getStock()));
+					
+					String updatedData = gson.toJson(invent);
+					
+					jsonArr.add(updatedData);
+				}
+			}
 		}
-		
-		String brand = inventory.getBrand();
-
-		String inventoryData = (String) jsonObj.get(brand);
-		
-		Inventory inventoryPojo = gson.fromJson(inventoryData, Inventory.class);
-		
-		int stocks = inventoryPojo.getStock();
-		
-		inventoryPojo.setStock((short)(stocks+inventory.getStock()));
-		
-		inventoryPojo.setDiscount(inventory.getDiscount());
-		
-		String updatedData = gson.toJson(inventoryPojo);
-		
-		jsonObj.put(brand, updatedData);
 		
 		json.jsonWrite(inventoryMap, "z-kart_db.txt");
 		
@@ -279,7 +292,7 @@ public class ZKartAPI {
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Formatter inventoryFormatWithDiscount()
+	public String inventoryFormatWithDiscount()
 	{
 		Formatter fmt = new Formatter();
 		
@@ -369,7 +382,7 @@ public class ZKartAPI {
 			}
 		}
 		
-		return fmt;
+		return "--- Items with discount ---\n"+fmt;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -424,7 +437,12 @@ public class ZKartAPI {
 			}
 		}
 		else
-		{	
+		{
+			if(getArr.contains(item))
+			{
+				return "Already Added in Cart";
+			}
+			
 			getArr.add(item);
 			
 			cartMap.put(userName, getArr);
@@ -442,9 +460,477 @@ public class ZKartAPI {
 
 	}
 	
-	public void viewCart(String userName)
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+	public String categoryMobile()
 	{
+		Formatter fmt = new Formatter();
 		
+		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		
+		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		
+		int mobileSize = 0;
+		
+		if(mobile!=null)
+		{
+			Set mobileStocks = mobile.keySet();
+			
+			mobileSize = mobileStocks.size();
+			
+			String mobileArr[] = new String[mobileSize];
+			
+			mobileStocks.toArray(mobileArr);
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String) mobile.get(mobileArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int discount = inventory.getDiscount();
+				
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),discount);
+			}
+		}
+		if(mobileSize==0)
+		{
+			return "Oops! Currently out of stock";
+		}
+		return "Here We Go\n"+fmt;
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public String categoryLaptop()
+	{
+		Formatter fmt = new Formatter();
+		
+		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		
+		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		
+		int laptopSize = 0;
+		
+		if(laptop!=null)
+		{
+			Set laptopStocks = laptop.keySet();
+			
+			laptopSize = laptopStocks.size();
+			
+			String laptopArr[] = new String[laptopSize];
+			
+			laptopStocks.toArray(laptopArr);
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(laptopArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int discount = inventory.getDiscount();
+
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),discount);
+			}
+		}
+		
+		if(laptopSize==0)
+		{
+			return "Oops! Currently out of stock";
+		}
+		return "Here We Go\n"+fmt;
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+	public String categoryTablet()
+	{
+		Formatter fmt = new Formatter();
+		
+		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+
+		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		
+		int tabletSize = 0;
+		
+		if(tablet!=null)
+		{
+			Set tabletStocks = tablet.keySet();
+			
+			tabletSize = tabletStocks.size();
+			
+			String tabletArr[] = new String[tabletSize];
+			
+			tabletStocks.toArray(tabletArr);
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String) tablet.get(tabletArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int discount = inventory.getDiscount();
+			
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),discount);
+				}
+			}
+		
+		if(tabletSize==0)
+		{
+			return "Oops! Currently out of stock";
+		}
+		return "Here We Go\n"+fmt;
+	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+	public String searchByBrands(String brand)
+	{
+		Formatter fmt = new Formatter();
+		
+		int count = 0;
+		
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		
+		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		
+		int laptopSize = 0;
+		
+		if(laptop!=null)
+		{
+			Set laptopStocks = laptop.keySet();
+			
+			laptopSize = laptopStocks.size();
+			
+			String laptopArr[] = new String[laptopSize];
+			
+			laptopStocks.toArray(laptopArr);
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(laptopArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getBrand = inventory.getBrand();
+				
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()))
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		
+		int mobileSize = 0;
+		
+		if(mobile!=null)
+		{
+			Set mobileStocks = mobile.keySet();
+			
+		    mobileSize = mobileStocks.size();
+			
+			String mobileArr[] = new String[mobileSize];
+			
+			mobileStocks.toArray(mobileArr);
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String) mobile.get(mobileArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getBrand = inventory.getBrand();
+				
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()) )
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		
+		int tabletSize = 0;
+		
+		if(tablet!=null)
+		{
+			Set tabletStocks = tablet.keySet();
+			
+			tabletSize = tabletStocks.size();
+			
+			String tabletArr[] = new String[tabletSize];
+			
+			tabletStocks.toArray(tabletArr);
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String) tablet.get(tabletArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getBrand = inventory.getBrand();
+
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()) )
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		if(count==0)
+		{
+			return "Oops! "+brand+" is out of stock";
+		}
+		return fmt+"";
+	}
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+	public String searchByModels(String model)
+	{
+		Formatter fmt = new Formatter();
+		
+		int count= 0;
+		
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		
+		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		
+		int laptopSize = 0;
+		
+		if(laptop!=null)
+		{
+			Set laptopStocks = laptop.keySet();
+			
+			laptopSize = laptopStocks.size();
+			
+			String laptopArr[] = new String[laptopSize];
+			
+			laptopStocks.toArray(laptopArr);
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(laptopArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+				
+				if(getModel.toLowerCase().contains(model.toLowerCase())   )
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		
+		int mobileSize = 0;
+		
+		if(mobile!=null)
+		{
+			Set mobileStocks = mobile.keySet();
+			
+		    mobileSize = mobileStocks.size();
+			
+			String mobileArr[] = new String[mobileSize];
+			
+			mobileStocks.toArray(mobileArr);
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String) mobile.get(mobileArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+				
+				if(getModel.toLowerCase().contains(getModel.toLowerCase()) )
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		
+		int tabletSize = 0;
+		
+		if(tablet!=null)
+		{
+			Set tabletStocks = tablet.keySet();
+			
+			tabletSize = tabletStocks.size();
+			
+			String tabletArr[] = new String[tabletSize];
+			
+			tabletStocks.toArray(tabletArr);
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String) tablet.get(tabletArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+
+				if(getModel.toLowerCase().contains(getModel.toLowerCase()) )
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		if(count==0)
+		{
+			return "Oops! "+model+" is out of stock";
+		}
+		return fmt+"";
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+
+	public String searchByPrice(int price)
+	{
+		Formatter fmt = new Formatter();
+		
+		int count = 0;
+		
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		
+		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		
+		int laptopSize = 0;
+		
+		if(laptop!=null)
+		{
+			Set laptopStocks = laptop.keySet();
+			
+			laptopSize = laptopStocks.size();
+			
+			String laptopArr[] = new String[laptopSize];
+			
+			laptopStocks.toArray(laptopArr);
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(laptopArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+				
+				if(getPrice <= price)
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						getPrice,inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		
+		int mobileSize = 0;
+		
+		if(mobile!=null)
+		{
+			Set mobileStocks = mobile.keySet();
+			
+		    mobileSize = mobileStocks.size();
+			
+			String mobileArr[] = new String[mobileSize];
+			
+			mobileStocks.toArray(mobileArr);
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String) mobile.get(mobileArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+				
+				if(getPrice <= price)
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						getPrice,inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		
+		int tabletSize = 0;
+		
+		if(tablet!=null)
+		{
+			Set tabletStocks = tablet.keySet();
+			
+			tabletSize = tabletStocks.size();
+			
+			String tabletArr[] = new String[tabletSize];
+			
+			tabletStocks.toArray(tabletArr);
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String) tablet.get(tabletArr[i]);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+
+				if(getPrice <= price)
+				{
+					count++;
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+						getPrice,inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+		
+		if(count==0)
+		{
+			return "Oops! No Products available in "+price+" range";
+		}
+		return fmt+"";
+	}
+	
+	public String checkOutCart(String userName)
+	{
+		JSONArray getArr =  (JSONArray) cartMap.get(userName);
+		
+		if(getArr==null)
+		{
+			return "Your cart is empty";
+		}
+		
+		int size = getArr.size();
+		
+		List<String> list = new ArrayList<>();
+		
+		for(int i = 0 ; i < size ; i++)
+		{
+			list.add((String) getArr.get(i));
+		}
+		
+		
+		return list+"";
+	}
 }

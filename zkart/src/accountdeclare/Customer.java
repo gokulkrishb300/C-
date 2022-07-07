@@ -22,8 +22,20 @@ public class Customer {
 	}
 	
 	public void setPassword(String password) {
-		this.password = password.hashCode()+"";
+		
+		int length = password.length();
+		
+		int count = 0;
+		
+		StringBuilder build = new StringBuilder();
+		
+		for(int i = 0 ; i < length ; i++)
+		{
+			build.append(++count+""+password.charAt(i));
+		}
+		this.password = build.reverse().toString().hashCode()+"";
 	}
+	
 	public String getName() {
 		return name;
 	}

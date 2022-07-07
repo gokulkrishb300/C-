@@ -6,7 +6,7 @@ public class Inventory {
 	private String model;
 	private int price;
 	private short stock;
-	private float discount;
+	private int discount;
 	
 	public String getCategory() {
 		return category+"";
@@ -38,10 +38,10 @@ public class Inventory {
 	public void setStock(short stock) {
 		this.stock = stock;
 	}
-	public float getDiscount() {
+	public int getDiscount() {
 		return discount;
 	}
-	public void setDiscount(float discount) {
+	public void setDiscount(int discount) {
 		this.discount = discount;
 	}
 	@Override
