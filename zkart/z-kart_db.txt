@@ -1,1 +1,1 @@
-{"LAPTOP":{"Acer":"{\"category\":\"LAPTOP\",\"brand\":\"Acer\",\"model\":\"Nitro5\",\"price\":62000,\"stock\":5,\"discount\":0}","Apple":"{\"category\":\"LAPTOP\",\"brand\":\"Apple\",\"model\":\"macbookAir\",\"price\":50000,\"stock\":3,\"discount\":2}"},"MOBILE":{"Xiaomi":"{\"category\":\"MOBILE\",\"brand\":\"Xiaomi\",\"model\":\"4\",\"price\":7000,\"stock\":5,\"discount\":12}"}}
+{"MOBILE":["{\"category\":\"MOBILE\",\"brand\":\"Vivo\",\"model\":\"oneplus\",\"price\":5000,\"stock\":2,\"discount\":3}"]}

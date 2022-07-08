@@ -1,1 +1,1 @@
-{"abc@zoho.com":["MOBILE-Xiaomi-4","LAPTOP-Acer-Nitro5","MOBILE-Acer-Nitro7"]}
+{"abc@zoho.com":["MOBILE-Xiaomi-4"]}
