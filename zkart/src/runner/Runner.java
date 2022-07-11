@@ -183,7 +183,12 @@ public class Runner {
 				categorySelect(userName);
 				break;
 			case 3:
-				System.out.println(api.checkOutCart(userName));
+				try {
+					System.out.println(api.checkOutCart(userName));
+				} catch (ManualException e) 
+				{
+					System.out.println(e.getMessage());
+				}
 				break;
 			}
 		}
@@ -256,7 +261,12 @@ public class Runner {
 				}
 				break;
 				case 5:
-					System.out.println(api.checkOutCart(userName));
+					try {
+						System.out.println(api.checkOutCart(userName));
+					} catch (ManualException e) 
+					{
+						System.out.println(e.getMessage());
+					}
 					break;
 				}
 				}
@@ -276,7 +286,12 @@ public class Runner {
 				break;
 			}
 			case 6:
-				System.out.println(api.checkOutCart(userName));
+				try {
+					System.out.println(api.checkOutCart(userName));
+				} catch (ManualException e) 
+				{
+					System.out.println(e.getMessage());
+				}
 				break;
 			default:
 				System.out.println("Select Wisley");

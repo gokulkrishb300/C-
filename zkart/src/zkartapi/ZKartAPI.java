@@ -151,8 +151,13 @@ public class ZKartAPI {
 	public String initializeInventory(Inventory inventory) throws ManualException
 	{
 		String category = inventory.getCategory();
+	
+		JSONArray jsonArr = (JSONArray) inventoryMap.get(category);
 		
-		JSONArray jsonArr = new JSONArray();
+		if(jsonArr==null)
+		{
+		   jsonArr = new JSONArray();
+		}
 		
 		String data = gson.toJson(inventory);
 		
@@ -210,6 +215,9 @@ public class ZKartAPI {
 		
 		return inventoryFormat()+"Inventory Stocks Added";
 	}
+	
+	
+
 	
 	public Formatter inventoryFormat()
 	{
@@ -437,7 +445,7 @@ public class ZKartAPI {
 	{
 		Formatter fmt = new Formatter();
 		
-		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
 		
 		JSONArray mobile = (JSONArray) inventoryMap.get("MOBILE");
 				
@@ -453,7 +461,7 @@ public class ZKartAPI {
 				
 				Inventory inventory = gson.fromJson(data, Inventory.class);
 				
-				fmt.format("%s %10s %10s %10s %10s %10s\\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
 						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
 			}
 		}
@@ -469,7 +477,7 @@ public class ZKartAPI {
 	{
 		Formatter fmt = new Formatter();
 		
-		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
 		
 		JSONArray laptop = (JSONArray) inventoryMap.get("LAPTOP");
 		
@@ -485,7 +493,7 @@ public class ZKartAPI {
 				
 				Inventory inventory = gson.fromJson(data, Inventory.class);
 				
-				fmt.format("%s %10s %10s %10s %10s %10s\\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
 						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
 			}
 		}
@@ -502,7 +510,7 @@ public class ZKartAPI {
 	{
 		Formatter fmt = new Formatter();
 		
-		fmt.format("\n%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
+		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
 
 		JSONArray tablet = (JSONArray) inventoryMap.get("TABLET");
 		
@@ -518,7 +526,7 @@ public class ZKartAPI {
 				
 				Inventory inventory = gson.fromJson(data, Inventory.class);
 				
-				fmt.format("%s %10s %10s %10s %10s %10s\\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+				fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
 						inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
 			}
 		}
@@ -538,31 +546,7 @@ public class ZKartAPI {
 		int count = 0;
 		
 		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
-	
-		JSONArray laptop = (JSONArray) inventoryMap.get("LAPTOP");
 		
-		int laptopSize = 0;
-		
-		if(laptop!=null)
-		{
-			laptopSize = laptop.size();
-			
-			for(int i = 0 ; i < laptopSize ; i++)
-			{
-				String data = (String) laptop.get(i);
-				
-				Inventory inventory = gson.fromJson(data, Inventory.class);
-				
-				String getBrand = inventory.getBrand();
-				
-				if(brand.toLowerCase().contains(getBrand.toLowerCase()))
-				{
-					count++;
-					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
-							inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
-				}
-			}
-		}
 		
 		JSONArray  mobile = (JSONArray) inventoryMap.get("MOBILE");
 		
@@ -580,7 +564,7 @@ public class ZKartAPI {
 				
 				String getBrand = inventory.getBrand();
 				
-				if(brand.toLowerCase().contains(getBrand.toLowerCase()))
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()))
 				{
 					count++;
 					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
@@ -588,6 +572,32 @@ public class ZKartAPI {
 				}
 			}
 		}
+		
+		JSONArray laptop = (JSONArray) inventoryMap.get("LAPTOP");
+		
+		int laptopSize = 0;
+		
+		if(laptop!=null)
+		{
+			laptopSize = laptop.size();
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getBrand = inventory.getBrand();
+				
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()))
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
+							inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
+		}
+
 		
 		JSONArray tablet = (JSONArray) inventoryMap.get("TABLET");
 		
@@ -605,7 +615,7 @@ public class ZKartAPI {
 				
 				String getBrand = inventory.getBrand();
 				
-				if(brand.toLowerCase().contains(getBrand.toLowerCase()))
+				if(getBrand.toLowerCase().contains(brand.toLowerCase()))
 				{
 					count++;
 					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),getBrand,inventory.getModel(),
@@ -629,31 +639,79 @@ public class ZKartAPI {
 		
 		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
 		
-		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		JSONArray laptop = (JSONArray) inventoryMap.get("LAPTOP");
 		
 		int laptopSize = 0;
 		
 		if(laptop!=null)
 		{
-
+			laptopSize = laptop.size();
+			
+			for(int i = 0 ; i < laptopSize ; i++)
+			{
+				String data = (String) laptop.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+				
+				if(getModel.toLowerCase().contains(model.toLowerCase()))
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+							inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
-		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		JSONArray mobile = (JSONArray) inventoryMap.get("MOBILE");
 		
 		int mobileSize = 0;
 		
 		if(mobile!=null)
 		{
-
+			mobileSize = mobile.size();
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String) mobile.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+				
+				if(getModel.toLowerCase().contains(model.toLowerCase()))
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+							inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
-		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		JSONArray tablet = (JSONArray) inventoryMap.get("TABLET");
 		
 		int tabletSize = 0;
 		
 		if(tablet!=null)
 		{
-
+			tabletSize = tablet.size();
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String)tablet.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				String getModel = inventory.getModel();
+				
+				if(getModel.toLowerCase().contains(model.toLowerCase()))
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),getModel,
+							inventory.getPrice(),inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
 		if(count==0)
@@ -672,31 +730,79 @@ public class ZKartAPI {
 		
 		fmt.format("%s %10s %10s %10s %10s %10s\n", "Category","Brand","Model","Price","Stock","Discount(%)");
 		
-		JSONObject laptop = (JSONObject) inventoryMap.get("LAPTOP");
+		JSONArray laptop = (JSONArray) inventoryMap.get("LAPTOP");
 		
 		int laptopSize = 0;
 		
 		if(laptop!=null)
 		{
-	
+			laptopSize = laptop.size();
+			
+			for(int i = 0 ;i < laptopSize ; i++)
+			{
+				String data = (String)laptop.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+				
+				if(getPrice <= price)
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+							getPrice, inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
-		JSONObject mobile = (JSONObject) inventoryMap.get("MOBILE");
+		JSONArray mobile = (JSONArray) inventoryMap.get("MOBILE");
 		
 		int mobileSize = 0;
 		
 		if(mobile!=null)
 		{
-		
+			mobileSize = mobile.size();
+			
+			for(int i = 0 ; i < mobileSize ; i++)
+			{
+				String data = (String)mobile.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+				
+				if(getPrice <= price)
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+							getPrice,inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
-		JSONObject tablet = (JSONObject) inventoryMap.get("TABLET");
+		JSONArray tablet = (JSONArray) inventoryMap.get("TABLET");
 		
 		int tabletSize = 0;
 		
 		if(tablet!=null)
 		{
-	
+			tabletSize = tablet.size();
+			
+			for(int i = 0 ; i < tabletSize ; i++)
+			{
+				String data = (String)tablet.get(i);
+				
+				Inventory inventory = gson.fromJson(data, Inventory.class);
+				
+				int getPrice = inventory.getPrice();
+				
+				if(getPrice <= price)
+				{
+					count++;
+					fmt.format("%s %10s %10s %10s %10s %10s\n", inventory.getCategory(),inventory.getBrand(),inventory.getModel(),
+							getPrice,inventory.getStock(),inventory.getDiscount());
+				}
+			}
 		}
 		
 		if(count==0)
@@ -706,7 +812,7 @@ public class ZKartAPI {
 		return fmt+"";
 	}
 	
-	public String checkOutCart(String userName)
+	public String checkOutCart(String userName) throws ManualException
 	{
 		JSONArray getArr =  (JSONArray) cartMap.get(userName);
 		
@@ -724,7 +830,62 @@ public class ZKartAPI {
 			list.add((String) getArr.get(i));
 		}
 		
+		reduceStock(list);
 		
 		return list+"";
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void reduceStock(List<String> list) throws ManualException
+	{
+		int listSize = list.size();
+		
+		for(int i = 0 ; i < listSize ; i++)
+		{
+			String temp = (String) list.get(i);
+			
+			String[] split = temp.split("-");
+			
+			String category = split[0];
+			
+			String brandInventory = split[1];
+			
+			String modelInventory = split[2];
+			
+			JSONArray jsonArr =  (JSONArray) inventoryMap.get(category);
+			
+			if(jsonArr!=null)
+			{
+				int size = jsonArr.size();
+				
+				for(int j = 0 ; j < size ; j++)
+				{
+					String data = (String) jsonArr.get(j);
+					
+					Inventory invent = gson.fromJson(data, Inventory.class);
+					
+					String brand = invent.getBrand();
+					
+					String model = invent.getModel();
+					
+					if(brand.equalsIgnoreCase(brandInventory) && model.equalsIgnoreCase(modelInventory))
+					{
+						
+						int oldStock = invent.getStock();
+						
+						invent.setStock((short)(--oldStock));
+						
+						jsonArr.remove(i);
+						
+						String updatedData = gson.toJson(invent);
+						
+						jsonArr.add(updatedData);
+					}
+					System.out.println(model+" Reduced");
+				}
+			}
+			
+			json.jsonWrite(inventoryMap, "z-kart_db.txt");
+		}
 	}
 }
